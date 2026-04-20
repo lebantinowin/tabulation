@@ -1,0 +1,120 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Contestant;
+use App\Models\Event;
+use Illuminate\Http\Request;
+
+class ContestantController extends Controller
+{
+    // Display public contestants list
+    public function publicIndex(Request $request)
+    {
+        $eventId = $request->get('event_id');
+        
+        $contestants = Contestant::with('event');
+        
+        if ($eventId) {
+            $contestants = $contestants->where('event_id', $eventId);
+        }
+        
+        $contestants = $contestants->orderBy('number')->get();
+        $events = Event::all();
+        
+        return view('contestants.public', compact('contestants', 'events'));
+    }
+
+    // Display a listing of the resource.
+    public function index()
+    {
+        $contestants = Contestant::with('event')->get();
+        return view('admin.contestants.index', compact('contestants'));
+    }
+
+    // Show the form for creating a new resource.
+    public function create()
+    {
+        $events = Event::all();
+        return view('admin.contestants.create', compact('events'));
+    }
+
+    // Store a newly created resource in storage.
+    public function store(Request $request)
+    {
+        $request->validate([
+            'event_id' => 'required|exists:events,id',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'number' => 'required|integer|min:1',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $data = $request->all();
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('contestants', 'public');
+            $data['image'] = $path;
+        }
+
+        Contestant::create($data);
+
+        return redirect()->route('contestants.index')
+            ->with('success', 'Contestant created successfully.');
+    }
+
+    // Display the specified resource.
+    public function show(Contestant $contestant)
+    {
+        return view('admin.contestants.show', compact('contestant'));
+    }
+
+    // Show the form for editing the specified resource.
+    public function edit(Contestant $contestant)
+    {
+        $events = Event::all();
+        return view('admin.contestants.edit', compact('contestant', 'events'));
+    }
+
+    // Update the specified resource in storage.
+    public function update(Request $request, Contestant $contestant)
+    {
+        $request->validate([
+            'event_id' => 'required|exists:events,id',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'number' => 'required|integer|min:1',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $data = $request->all();
+
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($contestant->image) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($contestant->image);
+            }
+            $path = $request->file('image')->store('contestants', 'public');
+            $data['image'] = $path;
+        }
+
+        $contestant->update($data);
+
+        return redirect()->route('contestants.index')
+            ->with('success', 'Contestant updated successfully.');
+    }
+
+    // Remove the specified resource from storage.
+    public function destroy(Contestant $contestant)
+    {
+        // Delete image if exists
+        if ($contestant->image) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($contestant->image);
+        }
+        
+        $contestant->delete();
+
+        return redirect()->route('contestants.index')
+            ->with('success', 'Contestant deleted successfully.');
+    }
+}

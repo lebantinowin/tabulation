@@ -1,0 +1,17 @@
+<IfModule mod_rewrite.c>
+    Options -MultiViews
+    RewriteEngine On
+    
+    # Redirect root /tabulation/ to /tabulation/public/
+    RewriteCond %{REQUEST_URI} ^/tabulation/$ [NC]
+    RewriteRule ^(.*)$ /tabulation/public/ [L,R=301]
+    
+    # Redirect /tabulation (without trailing slash) to /tabulation/public/
+    RewriteCond %{REQUEST_URI} ^/tabulation$ [NC]
+    RewriteRule ^(.*)$ /tabulation/public/ [L,R=301]
+    
+    # Handle other requests within the tabulation folder
+    RewriteCond %{REQUEST_URI} ^/tabulation/(.*)$ [NC]
+    RewriteRule ^(.*)$ /tabulation/public/$1 [L]
+</IfModule>
+
