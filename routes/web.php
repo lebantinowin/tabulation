@@ -74,14 +74,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/events/{event}/assign-judges', [EventController::class, 'assignJudges'])->name('events.assignJudges');
     Route::post('/events/{event}/assign-judges', [EventController::class, 'storeAssignedJudges'])->name('events.storeAssignedJudges');
 
-    // Tabulation Control
-    Route::get('/tabulation/results', [TabulationController::class, 'results'])->name('tabulation.results');
+    // Tabulation Control (override, lock, unlock, message)
     Route::post('/tabulation/override', [TabulationController::class, 'override'])->name('tabulation.override');
     Route::post('/tabulation/lock', [TabulationController::class, 'lock'])->name('tabulation.lock');
     Route::post('/tabulation/unlock', [TabulationController::class, 'unlock'])->name('tabulation.unlock');
     Route::post('/tabulation/message', [TabulationController::class, 'message'])->name('tabulation.message');
 
-    // Print Results
+    // PDF Export / Print
     Route::get('/tabulation/print', [TabulationController::class, 'print'])->name('tabulation.print');
     Route::get('/tabulation/print-category/{criteriaId}', [TabulationController::class, 'printCategory'])->name('tabulation.print-category');
 

@@ -54,23 +54,9 @@
             @auth
             @if(auth()->user()->isAdmin())
             <div class="flex gap-2" style="flex-wrap: wrap;">
-                <a href="{{ route('tabulation.print', ['event_id' => $event->id]) }}" class="btn" target="_blank" style="background: var(--color-info);">
-                    <i class="fas fa-file-pdf"></i> Export PDF (Overall)
+                <a href="{{ route('tabulation.print', ['event_id' => $event->id]) }}" class="btn" style="background: var(--color-info);">
+                    <i class="fas fa-file-pdf"></i> Export PDF
                 </a>
-                @if(count($criterias) > 0)
-                    <div class="dropdown" style="position: relative; display: inline-block;">
-                        <button class="btn" style="background: var(--color-secondary);" onclick="toggleDropdown()">
-                            <i class="fas fa-file-pdf"></i> Export by Category <i class="fas fa-caret-down"></i>
-                        </button>
-                        <div id="categoryDropdown" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: var(--color-white); border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 200px; overflow: hidden; text-align: left;">
-                            @foreach($criterias as $criteria)
-                                <a href="{{ route('tabulation.print-category', ['criteriaId' => $criteria->id]) }}" target="_blank" style="display: block; padding: 0.75rem 1rem; color: var(--color-text); text-decoration: none; font-size: 0.9rem; border-bottom: 1px solid var(--color-border); transition: background 0.2s;" onmouseover="this.style.background='var(--color-main)'" onmouseout="this.style.background='transparent'">
-                                    {{ $criteria->name }}
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
             </div>
             @endif
             @endauth
@@ -139,7 +125,19 @@
     @if(count($criterias) > 0)
         @foreach($criterias as $criteria)
             <div class="card">
-                <h3 style="margin-bottom: 1rem;">{{ $criteria->name }} - Breakdown</h3>
+                <div class="flex justify-between items-center mb-4" style="flex-wrap: wrap; gap: 1rem;">
+                    <h3 style="margin-bottom: 0;">{{ $criteria->name }} - Breakdown</h3>
+                    
+                    @auth
+                    @if(auth()->user()->isAdmin())
+                    <div class="flex gap-2" style="flex-wrap: wrap;">
+                        <a href="{{ route('tabulation.print-category', ['criteriaId' => $criteria->id]) }}" class="btn btn-sm" style="background: var(--color-info); padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </a>
+                    </div>
+                    @endif
+                    @endauth
+                </div>
                 
                 <table>
                     <thead>
@@ -190,4 +188,5 @@
         @endforeach
     @endif
 @endif
+
 @endsection

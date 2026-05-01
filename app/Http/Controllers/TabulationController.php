@@ -9,6 +9,7 @@ use App\Models\Score;
 use App\Models\Criteria;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TabulationController extends Controller
 {
@@ -149,7 +150,7 @@ class TabulationController extends Controller
         return view('admin.tabulation.results', compact('events'));
     }
 
-    // Print all results (overall)
+    // Download overall results as PDF
     public function print(Request $request)
     {
         $eventId = $request->get('event_id');
@@ -160,19 +161,130 @@ class TabulationController extends Controller
         
         $event = Event::findOrFail($eventId);
         [$results, $criterias] = $this->computeResults($event);
-        
-        return view('admin.tabulation.print', compact('event', 'results'));
+
+        $pdf = Pdf::loadView('admin.tabulation.print', compact('event', 'results', 'criterias'))
+            ->setPaper('a4', 'portrait');
+
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . '_Overall_Results.pdf';
+
+        return $pdf->download($filename);
     }
 
-    // Print results by category (criteria)
+    // Download results by category as PDF
     public function printCategory(Request $request, $criteriaId)
     {
         $criteria = Criteria::findOrFail($criteriaId);
         $event = Event::findOrFail($criteria->event_id);
         
         [$results, $criterias] = $this->computeResults($event, $criteria->id);
+
+        $pdf = Pdf::loadView('admin.tabulation.print-category', compact('event', 'criteria', 'results', 'criterias'))
+            ->setPaper('a4', 'portrait');
+
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $criteria->name) . '_Results.pdf';
+
+        return $pdf->download($filename);
+    }
+
+    // Export all results (overall) to CSV
+    public function export(Request $request)
+    {
+        $eventId = $request->get('event_id');
+        if (!$eventId) {
+            return back()->with('error', 'Please select an event.');
+        }
         
-        return view('admin.tabulation.print-category', compact('event', 'criteria', 'results'));
+        $event = Event::findOrFail($eventId);
+        [$results, $criterias] = $this->computeResults($event);
+
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . "_Overall_Results.csv";
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=\"{$filename}\"",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = ['Rank', 'Contestant Number', 'Contestant Name'];
+        foreach ($criterias as $criteria) {
+            $columns[] = $criteria->name . ' (' . $criteria->weight . '%)';
+        }
+        $columns[] = 'Total Score';
+        $columns[] = 'Remarks';
+
+        $callback = function() use ($results, $criterias, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($results as $result) {
+                $row = [
+                    $result['rank'] ?? 'N/A',
+                    $result['contestant']->number ?? '',
+                    $result['contestant']->name,
+                ];
+                foreach ($criterias as $criteria) {
+                    $row[] = number_format($result['criteria_scores'][$criteria->id]['average'] ?? 0, 2);
+                }
+                $row[] = number_format($result['total_score'], 2);
+                $row[] = $result['is_overridden'] ? 'Overridden' : '';
+
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    // Export results by category to CSV
+    public function exportCategory(Request $request, $criteriaId)
+    {
+        $criteria = Criteria::findOrFail($criteriaId);
+        $event = Event::findOrFail($criteria->event_id);
+        
+        [$results, $criterias] = $this->computeResults($event, $criteria->id);
+
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . "_" . preg_replace('/[^A-Za-z0-9_\-]/', '_', $criteria->name) . "_Results.csv";
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=\"{$filename}\"",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = ['Rank', 'Contestant Number', 'Contestant Name', 'Score'];
+
+        $callback = function() use ($results, $criteria, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            $criteriaResults = [];
+            foreach($results as $result) {
+                $criteriaResults[] = [
+                    'contestant' => $result['contestant'],
+                    'average' => $result['criteria_scores'][$criteria->id]['average'] ?? 0,
+                ];
+            }
+            usort($criteriaResults, function($a, $b) {
+                return $b['average'] <=> $a['average'];
+            });
+
+            $rank = 1;
+            foreach ($criteriaResults as $cr) {
+                $row = [
+                    $rank++,
+                    $cr['contestant']->number ?? '',
+                    $cr['contestant']->name,
+                    number_format($cr['average'], 2)
+                ];
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     // Override a contestant's score

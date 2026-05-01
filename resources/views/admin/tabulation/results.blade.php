@@ -32,17 +32,17 @@
     <div class="flex justify-between items-center mb-3" style="flex-wrap: wrap; gap: 0.75rem;">
         <h2 class="mb-0">{{ $event->name }} — Results</h2>
         <div class="flex gap-2" style="flex-wrap: wrap;">
-            <a href="{{ route('tabulation.print', ['event_id' => $event->id]) }}" class="btn" target="_blank" style="background: var(--color-info);">
-                <i class="fas fa-file-pdf"></i> Export PDF (Overall)
+            <a href="{{ route('tabulation.print', ['event_id' => $event->id]) }}" class="btn" style="background: var(--color-info);">
+                <i class="fas fa-file-pdf"></i> Export PDF
             </a>
             @if(count($criterias) > 0)
                 <div class="dropdown" style="position: relative; display: inline-block;">
-                    <button class="btn" style="background: var(--color-secondary);" onclick="toggleDropdown()">
-                        <i class="fas fa-file-pdf"></i> Export by Category <i class="fas fa-caret-down"></i>
+                    <button class="btn" style="background: var(--color-secondary);" onclick="toggleDropdown('print')">
+                        <i class="fas fa-file-pdf"></i> Export PDF by Category <i class="fas fa-caret-down"></i>
                     </button>
-                    <div id="categoryDropdown" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: var(--color-white); border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 200px; overflow: hidden;">
+                    <div id="categoryDropdownPrint" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: var(--color-white); border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 200px; overflow: hidden;">
                         @foreach($criterias as $criteria)
-                            <a href="{{ route('tabulation.print-category', ['criteriaId' => $criteria->id]) }}" target="_blank" style="display: block; padding: 0.75rem 1rem; color: var(--color-text); text-decoration: none; font-size: 0.9rem; border-bottom: 1px solid var(--color-border); transition: background 0.2s;" onmouseover="this.style.background='var(--color-main)'" onmouseout="this.style.background='transparent'">
+                            <a href="{{ route('tabulation.print-category', ['criteriaId' => $criteria->id]) }}" style="display: block; padding: 0.75rem 1rem; color: var(--color-text); text-decoration: none; font-size: 0.9rem; border-bottom: 1px solid var(--color-border); transition: background 0.2s;" onmouseover="this.style.background='var(--color-main)'" onmouseout="this.style.background='transparent'">
                                 {{ $criteria->name }}
                             </a>
                         @endforeach
@@ -137,16 +137,18 @@
 </div>
 
 <script>
-    function toggleDropdown() {
-        var menu = document.getElementById('categoryDropdown');
-        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    function toggleDropdown(type) {
+        var menuPrint = document.getElementById('categoryDropdownPrint');
+        if (menuPrint) menuPrint.style.display = menuPrint.style.display === 'block' ? 'none' : 'block';
     }
 
     // Close dropdown when clicking outside
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.dropdown')) {
-            var menu = document.getElementById('categoryDropdown');
-            if (menu) menu.style.display = 'none';
+            var menuCsv = document.getElementById('categoryDropdownCsv');
+            var menuPrint = document.getElementById('categoryDropdownPrint');
+            if (menuCsv) menuCsv.style.display = 'none';
+            if (menuPrint) menuPrint.style.display = 'none';
         }
     });
 

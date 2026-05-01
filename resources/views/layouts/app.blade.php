@@ -70,11 +70,6 @@
             display: none;
         }
         
-        .sidebar.collapsed .nav-links a {
-            padding: 0.85rem;
-            justify-content: center;
-        }
-        
         .sidebar.collapsed .brand {
             padding: 1rem 0.5rem 1.5rem;
             text-align: center;
@@ -112,34 +107,32 @@
         .sidebar.collapsed .brand-text-full { display: none !important; }
         .sidebar.collapsed .brand-text-short { display: inline !important; }
         
-        /* Toggle Button - Attached to sidebar */
+        /* Toggle Button - Attached to sidebar edge */
         .sidebar-toggle-btn {
-            position: absolute;
-            right: -15px;
+            position: fixed;
+            left: 260px;
             top: 50%;
             transform: translateY(-50%);
-            background: var(--color-sidebar);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--color-sidebar, #040D12);
+            border: 1px solid #040D12;
             border-left: none;
             color: var(--color-white);
-            width: 30px;
+            width: 15px;
             height: 60px;
-            border-radius: 0 15px 15px 0;
+            border-radius: 0 10px 10px 0;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
-            z-index: 9999;
+            z-index: 1001;
             padding: 0;
             font-size: 0.9rem;
             box-shadow: 2px 0 5px rgba(0,0,0,0.2);
         }
-        
-        .sidebar-toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            width: 35px;
-            right: -17px;
+
+        .sidebar.collapsed ~ .sidebar-toggle-btn {
+            left: 70px;
         }
         
         .sidebar .nav-links {
@@ -794,18 +787,18 @@
         
         <div class="nav-links">
             @if(auth()->user()->isAdmin())
-                <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
-                <a href="{{ route('events.index') }}" class="{{ request()->routeIs('events.*') ? 'active' : '' }}"><i class="fas fa-calendar-alt"></i> <span>Events</span></a>
-                <a href="{{ route('contestants.index') }}" class="{{ request()->routeIs('contestants.*') ? 'active' : '' }}"><i class="fas fa-users"></i> <span>Contestants</span></a>
-                <a href="{{ route('judges.index') }}" class="{{ request()->routeIs('judges.*') ? 'active' : '' }}"><i class="fas fa-user-tie"></i> <span>Judges</span></a>
-                <a href="{{ route('results.index') }}" class="{{ request()->routeIs('results.*') ? 'active' : '' }}"><i class="fas fa-trophy"></i> <span>Results</span></a>
-                <a href="{{ route('auditLogs.index') }}" class="{{ request()->routeIs('auditLogs.*') ? 'active' : '' }}"><i class="fas fa-clipboard-list"></i> <span>Audit Logs</span></a>
-                <a href="{{ route('trash.index') }}" class="{{ request()->routeIs('trash.*') ? 'active' : '' }}"><i class="fas fa-trash-restore"></i> <span>Recycle Bin</span></a>
+                <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" title="Dashboard"><i class="fas fa-tachometer-alt" style="width: 20px; text-align: center;"></i> <span>Dashboard</span></a>
+                <a href="{{ route('events.index') }}" class="{{ request()->routeIs('events.*') ? 'active' : '' }}" title="Events"><i class="fas fa-calendar-alt" style="width: 20px; text-align: center;"></i> <span>Events</span></a>
+                <a href="{{ route('contestants.index') }}" class="{{ request()->routeIs('contestants.*') ? 'active' : '' }}" title="Contestants"><i class="fas fa-users" style="width: 20px; text-align: center;"></i> <span>Contestants</span></a>
+                <a href="{{ route('judges.index') }}" class="{{ request()->routeIs('judges.*') ? 'active' : '' }}" title="Judges"><i class="fas fa-user-tie" style="width: 20px; text-align: center;"></i> <span>Judges</span></a>
+                <a href="{{ route('results.index') }}" class="{{ request()->routeIs('results.*') ? 'active' : '' }}" title="Results"><i class="fas fa-trophy" style="width: 20px; text-align: center;"></i> <span>Results</span></a>
+                <a href="{{ route('auditLogs.index') }}" class="{{ request()->routeIs('auditLogs.*') ? 'active' : '' }}" title="Audit Logs"><i class="fas fa-clipboard-list" style="width: 20px; text-align: center;"></i> <span>Audit Logs</span></a>
+                <a href="{{ route('trash.index') }}" class="{{ request()->routeIs('trash.*') ? 'active' : '' }}" title="Recycle Bin"><i class="fas fa-trash-restore" style="width: 20px; text-align: center;"></i> <span>Recycle Bin</span></a>
             @elseif(auth()->user()->isJudge())
-                <a href="{{ route('judge.dashboard') }}" class="{{ request()->routeIs('judge.dashboard') ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
-                <a href="{{ route('scores.index') }}" class="{{ request()->routeIs('scores.*') ? 'active' : '' }}"><i class="fas fa-star"></i> <span>Scores</span></a>
-                <a href="{{ route('results.index') }}" class="{{ request()->routeIs('results.*') ? 'active' : '' }}"><i class="fas fa-trophy"></i> <span>Results</span></a>
-                <a href="{{ route('judge.profile') }}" class="{{ request()->routeIs('judge.profile') ? 'active' : '' }}"><i class="fas fa-user"></i> <span>Profile</span></a>
+                <a href="{{ route('judge.dashboard') }}" class="{{ request()->routeIs('judge.dashboard') ? 'active' : '' }}" title="Dashboard"><i class="fas fa-tachometer-alt" style="width: 20px; text-align: center;"></i> <span>Dashboard</span></a>
+                <a href="{{ route('scores.index') }}" class="{{ request()->routeIs('scores.*') ? 'active' : '' }}" title="Scores"><i class="fas fa-star" style="width: 20px; text-align: center;"></i> <span>Scores</span></a>
+                <a href="{{ route('results.index') }}" class="{{ request()->routeIs('results.*') ? 'active' : '' }}" title="Results"><i class="fas fa-trophy" style="width: 20px; text-align: center;"></i> <span>Results</span></a>
+                <a href="{{ route('judge.profile') }}" class="{{ request()->routeIs('judge.profile') ? 'active' : '' }}" title="Profile"><i class="fas fa-user" style="width: 20px; text-align: center;"></i> <span>Profile</span></a>
             @endif
         </div>
         
@@ -817,14 +810,15 @@
         <div class="logout-form">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>
+                <button type="submit" title="Logout"><i class="fas fa-sign-out-alt" style="width: 20px; text-align: center;"></i> <span>Logout</span></button>
             </form>
         </div>
-        <!-- Toggle Button - Attached to sidebar -->
-        <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
-            <i class="fas fa-chevron-left" id="toggle-icon"></i>
-        </button>
     </nav>
+
+    <!-- Toggle Button - Outside sidebar on the right edge -->
+    <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Toggle Sidebar">
+        <i class="fas fa-chevron-left" id="toggle-icon"></i>
+    </button>
     @endauth
     
     <div class="@auth main-content @else full-content @endauth" id="main-content">

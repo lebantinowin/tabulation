@@ -3,6 +3,95 @@
 @section('title', 'Event Results')
 
 @section('content')
+<style>
+    .event-result-card {
+        padding: 0; 
+        overflow: hidden; 
+        cursor: pointer; 
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 16px;
+        background: var(--color-white);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .event-result-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        border-color: rgba(0,0,0,0.1);
+    }
+    .event-result-card .event-banner-container {
+        width: 100%; 
+        height: 180px; 
+        overflow: hidden;
+        position: relative;
+    }
+    .event-result-card .event-banner-container img {
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    .event-result-card:hover .event-banner-container img {
+        transform: scale(1.08);
+    }
+    .event-result-card .event-details {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+    .event-result-card h3 {
+        margin-bottom: 0.5rem; 
+        color: var(--color-btn); 
+        font-size: 1.3rem;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+    .event-result-card .event-date {
+        color: var(--color-muted); 
+        margin-bottom: 1.5rem; 
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .event-result-card .event-footer {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+    .event-result-card .view-btn {
+        color: var(--color-info);
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: gap 0.3s ease;
+    }
+    .event-result-card:hover .view-btn {
+        gap: 0.7rem;
+    }
+    .fallback-banner {
+        width: 100%; 
+        height: 100%; 
+        background: linear-gradient(135deg, #040D12 0%, #2B6CB0 100%); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        transition: transform 0.5s ease;
+    }
+    .event-result-card:hover .fallback-banner {
+        transform: scale(1.08);
+    }
+</style>
+
 <div class="page-header">
     <h1>Event Results</h1>
 </div>
@@ -12,10 +101,10 @@
         No events found.
     </div>
 @else
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem;">
         @foreach($events as $event)
-            <a href="{{ route('results.show', $event->id) }}" style="text-decoration: none; color: inherit;">
-                <div class="card" style="padding: 0; overflow: hidden; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+            <a href="{{ route('results.show', $event->id) }}" style="text-decoration: none; color: inherit; display: block;">
+                <div class="card event-result-card">
                     @php
                     $bannerPath = $event->banner;
                     $bannerFullPath = '';
@@ -49,20 +138,22 @@
                     @endphp
                     
                     @if($bannerImageFound && $bannerFullPath)
-                        <div class="event-banner">
-                            <img src="{{ asset($bannerFullPath) }}" alt="{{ $event->name }}" style="width: 100%; height: 120px; object-fit: cover;">
+                        <div class="event-banner-container">
+                            <img src="{{ asset($bannerFullPath) }}" alt="{{ $event->name }}">
                         </div>
                     @else
-                        <div style="width: 100%; height: 120px; background: linear-gradient(135deg, #040D12 0%, #1a2634 100%); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-calendar-alt" style="font-size: 3rem; color: rgba(255,255,255,0.3);"></i>
+                        <div class="event-banner-container">
+                            <div class="fallback-banner">
+                                <i class="fas fa-trophy" style="font-size: 3.5rem; color: rgba(255,255,255,0.2);"></i>
+                            </div>
                         </div>
                     @endif
                     
-                    <div style="padding: 0.75rem;">
-                        <h3 style="margin-bottom: 0.25rem; color: #040D12; font-size: 1.1rem;">{{ $event->name }}</h3>
+                    <div class="event-details">
+                        <h3>{{ $event->name }}</h3>
                         
-                        <p style="color: #666; margin-bottom: 0.25rem; font-size: 0.9rem;">
-                            <i class="fas fa-calendar"></i> {{ \Carbon\Carbon::parse($event->date)->format('F d, Y') }}
+                        <p class="event-date">
+                            <i class="fas fa-calendar-day"></i> {{ \Carbon\Carbon::parse($event->date)->format('F d, Y') }}
                         </p>
                         
                         @php
@@ -84,7 +175,12 @@
                             }
                         @endphp
                         
-                        <span class="badge {{ $eventStatusClass }}">{{ $eventStatusText }}</span>
+                        <div class="event-footer">
+                            <span class="badge {{ $eventStatusClass }}">{{ $eventStatusText }}</span>
+                            <div class="view-btn">
+                                View Results <i class="fas fa-arrow-right"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </a>
