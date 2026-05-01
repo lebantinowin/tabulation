@@ -15,23 +15,24 @@ class ScoreController extends Controller
     // Display a listing of the resource - only current judge's scores
     public function index(Request $request)
     {
-        $eventId = $request->get('event_id');
-        
+        $judge = Auth::user();
+        $eventId = $judge->event_id; // always scope to judge's event
+
         $scores = Score::with(['contestant', 'criteria', 'judge'])
-            ->where('judge_id', Auth::id());
-        
+            ->where('judge_id', $judge->id);
+
         if ($eventId) {
             $scores = $scores->whereHas('contestant', function ($query) use ($eventId) {
                 $query->where('event_id', $eventId);
             });
         }
-        
+
         $scores = $scores->get();
-        
-        $events = Event::where('is_archived', false)->get();
-        $judges = \App\Models\User::where('role', 'judge')->get();
-        
-        return view('judge.scores.index', compact('scores', 'events', 'judges', 'eventId'));
+
+        $criterias   = $eventId ? Criteria::where('event_id', $eventId)->get()   : collect();
+        $contestants = $eventId ? Contestant::where('event_id', $eventId)->get()  : collect();
+
+        return view('judge.scores.index', compact('scores', 'criterias', 'contestants', 'eventId'));
     }
 
     // Show the form for creating a new resource.
@@ -51,7 +52,7 @@ class ScoreController extends Controller
     {
         $request->validate([
             'contestant_id' => 'required|exists:contestants,id',
-            'criteria_id' => 'required|exists:criterias,id',
+            'criteria_id' => 'required|exists:criteria,id',
         ]);
 
         $criteria = Criteria::findOrFail($request->criteria_id);
@@ -202,7 +203,7 @@ class ScoreController extends Controller
 
         $request->validate([
             'contestant_id' => 'required|exists:contestants,id',
-            'criteria_id' => 'required|exists:criterias,id',
+            'criteria_id' => 'required|exists:criteria,id',
         ]);
 
         $criteria = Criteria::findOrFail($request->criteria_id);
