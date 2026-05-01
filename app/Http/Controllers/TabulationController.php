@@ -162,12 +162,17 @@ class TabulationController extends Controller
         $event = Event::findOrFail($eventId);
         [$results, $criterias] = $this->computeResults($event);
 
-        $pdf = Pdf::loadView('admin.tabulation.print', compact('event', 'results', 'criterias'))
+        $adminName = $request->input('admin_name');
+        $judges = $request->input('judges', []);
+
+        $pdf = Pdf::loadView('admin.tabulation.print', compact('event', 'results', 'criterias', 'adminName', 'judges'))
             ->setPaper('a4', 'portrait');
 
         $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . '_Overall_Results.pdf';
-
-        return $pdf->download($filename);
+        
+        return response()->streamDownload(function() use ($pdf) {
+            echo $pdf->output();
+        }, $filename, ['Content-Type' => 'application/pdf']);
     }
 
     // Download results by category as PDF
@@ -178,12 +183,17 @@ class TabulationController extends Controller
         
         [$results, $criterias] = $this->computeResults($event, $criteria->id);
 
-        $pdf = Pdf::loadView('admin.tabulation.print-category', compact('event', 'criteria', 'results', 'criterias'))
+        $adminName = $request->input('admin_name');
+        $judges = $request->input('judges', []);
+
+        $pdf = Pdf::loadView('admin.tabulation.print-category', compact('event', 'criteria', 'results', 'criterias', 'adminName', 'judges'))
             ->setPaper('a4', 'portrait');
 
         $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $criteria->name) . '_Results.pdf';
-
-        return $pdf->download($filename);
+        
+        return response()->streamDownload(function() use ($pdf) {
+            echo $pdf->output();
+        }, $filename, ['Content-Type' => 'application/pdf']);
     }
 
     // Export all results (overall) to CSV

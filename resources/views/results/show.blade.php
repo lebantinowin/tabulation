@@ -54,9 +54,9 @@
             @auth
             @if(auth()->user()->isAdmin())
             <div class="flex gap-2" style="flex-wrap: wrap;">
-                <a href="{{ route('tabulation.print', ['event_id' => $event->id]) }}" class="btn" style="background: var(--color-info);">
+                <button type="button" onclick="openPdfModal('{{ route('tabulation.print', ['event_id' => $event->id]) }}')" class="btn" style="background: var(--color-info);">
                     <i class="fas fa-file-pdf"></i> Export PDF
-                </a>
+                </button>
             </div>
             @endif
             @endauth
@@ -131,9 +131,9 @@
                     @auth
                     @if(auth()->user()->isAdmin())
                     <div class="flex gap-2" style="flex-wrap: wrap;">
-                        <a href="{{ route('tabulation.print-category', ['criteriaId' => $criteria->id]) }}" class="btn btn-sm" style="background: var(--color-info); padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                        <button type="button" onclick="openPdfModal('{{ route('tabulation.print-category', ['criteriaId' => $criteria->id]) }}')" class="btn btn-sm" style="background: var(--color-info); padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                             <i class="fas fa-file-pdf"></i> Export PDF
-                        </a>
+                        </button>
                     </div>
                     @endif
                     @endauth
@@ -188,5 +188,7 @@
         @endforeach
     @endif
 @endif
+
+@include('partials.pdf_signature_modal')
 
 @endsection
