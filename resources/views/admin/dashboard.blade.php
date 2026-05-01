@@ -19,38 +19,32 @@
     </div>
 @endif
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-    <a href="{{ route('events.index') }}" class="card-clickable" style="text-decoration: none;">
-        <div class="card">
+<div class="grid gap-4" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+    <a href="{{ route('events.index') }}" class="card-clickable">
+        <div class="card mb-0">
             <h3><i class="fas fa-calendar-alt"></i> Events</h3>
-            <p style="font-size: 2rem; font-weight: bold; color: var(--color-text);">{{ \App\Models\Event::count() }}</p>
+            <p style="font-size: 2rem; font-weight: bold; color: var(--color-text);">{{ $eventCount }}</p>
         </div>
     </a>
     
-    <a href="{{ route('contestants.index') }}" class="card-clickable" style="text-decoration: none;">
-        <div class="card">
+    <a href="{{ route('contestants.index') }}" class="card-clickable">
+        <div class="card mb-0">
             <h3><i class="fas fa-users"></i> Contestants</h3>
-            <p style="font-size: 2rem; font-weight: bold; color: var(--color-text);">{{ \App\Models\Contestant::count() }}</p>
+            <p style="font-size: 2rem; font-weight: bold; color: var(--color-text);">{{ $contestantCount }}</p>
         </div>
     </a>
     
-    <a href="{{ route('judges.index') }}" class="card-clickable" style="text-decoration: none;">
-        <div class="card">
+    <a href="{{ route('judges.index') }}" class="card-clickable">
+        <div class="card mb-0">
             <h3><i class="fas fa-user-tie"></i> Judges</h3>
-            <p style="font-size: 2rem; font-weight: bold; color: var(--color-text);">{{ \App\Models\User::where('role', 'judge')->count() }}</p>
+            <p style="font-size: 2rem; font-weight: bold; color: var(--color-text);">{{ $judgeCount }}</p>
         </div>
     </a>
     
-    <a href="{{ route('auditLogs.index') }}" class="card-clickable" style="text-decoration: none;">
-        <div class="card">
+    <a href="{{ route('auditLogs.index') }}" class="card-clickable">
+        <div class="card mb-0">
             <h3><i class="fas fa-clipboard-list"></i> Audit Logs</h3>
-            <p style="font-size: 2rem; font-weight: bold; color: var(--color-text);">
-                <?php try { ?>
-                    {{ \App\Models\AuditLog::count() }}
-                <?php } catch (\Exception $e) { ?>
-                    0
-                <?php } ?>
-            </p>
+            <p style="font-size: 2rem; font-weight: bold; color: var(--color-text);">{{ $auditLogCount }}</p>
         </div>
     </a>
 </div>
@@ -76,36 +70,5 @@
     </div>
 </div>
 
-<style>
-.card-clickable .card {
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
 
-.card-clickable .card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: var(--color-btn);
-}
-
-.card-clickable .card h3 {
-    color: var(--color-text);
-}
-
-.card-clickable .card h3 i {
-    margin-right: 0.5rem;
-    color: var(--color-btn);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-</style>
 @endsection

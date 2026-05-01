@@ -38,17 +38,32 @@ Route::middleware(['auth', 'role:judge'])->group(function () {
 
 // Admin Dashboard
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/admin/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/api/assistance/pending', [App\Http\Controllers\AdminController::class, 'pendingAssistance'])->name('admin.assistance.pending');
 
     // Event Management
+    Route::post('/events/{event}/archive', [App\Http\Controllers\EventController::class, 'archive'])->name('events.archive');
+    Route::post('/events/{event}/unarchive', [App\Http\Controllers\EventController::class, 'unarchive'])->name('events.unarchive');
     Route::resource('events', EventController::class);
 
-    // Criteria & Sub-criteria
-    Route::resource('criteria', CriteriaController::class);
+    // Criteria routes
+    Route::resource('criteria', CriteriaController::class)->parameters(['criteria' => 'criteria']);
 
-    // Contestants / Participants
+    // Trash / Recycle Bin routes
+    Route::get('/trash', [App\Http\Controllers\TrashController::class, 'index'])->name('trash.index');
+    Route::post('/trash/event/{id}/restore', [App\Http\Controllers\TrashController::class, 'restoreEvent'])->name('trash.restore.event');
+    Route::delete('/trash/event/{id}/force', [App\Http\Controllers\TrashController::class, 'forceDeleteEvent'])->name('trash.force-delete.event');
+    
+    Route::post('/trash/contestant/{id}/restore', [App\Http\Controllers\TrashController::class, 'restoreContestant'])->name('trash.restore.contestant');
+    Route::delete('/trash/contestant/{id}/force', [App\Http\Controllers\TrashController::class, 'forceDeleteContestant'])->name('trash.force-delete.contestant');
+    
+    Route::post('/trash/judge/{id}/restore', [App\Http\Controllers\TrashController::class, 'restoreJudge'])->name('trash.restore.judge');
+    Route::delete('/trash/judge/{id}/force', [App\Http\Controllers\TrashController::class, 'forceDeleteJudge'])->name('trash.force-delete.judge');
+    
+    Route::post('/trash/score/{id}/restore', [App\Http\Controllers\TrashController::class, 'restoreScore'])->name('trash.restore.score');
+    Route::delete('/trash/score/{id}/force', [App\Http\Controllers\TrashController::class, 'forceDeleteScore'])->name('trash.force-delete.score');
+
+    // System configurations / Participants
     Route::resource('contestants', ContestantController::class);
 
     // Judges Management
@@ -87,9 +102,7 @@ Route::get('/results/{event}', [TabulationController::class, 'publicResults'])->
 
 // Judge Dashboard
 Route::middleware(['auth', 'role:judge'])->group(function () {
-    Route::get('/judge/dashboard', function () {
-        return view('judge.dashboard');
-    })->name('judge.dashboard');
+    Route::get('/judge/dashboard', [JudgeController::class, 'dashboard'])->name('judge.dashboard');
 
     // Scoring
     Route::resource('scores', ScoreController::class);

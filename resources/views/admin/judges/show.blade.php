@@ -73,8 +73,8 @@
                       method="POST" style="display: inline;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn-icon btn-icon-delete"
-                            onclick="return confirm('Are you sure you want to delete this judge?')"
+                    <button type="button" class="btn-icon btn-icon-delete"
+                            onclick="confirmForm(this.closest('form'), 'This judge will be permanently deleted.', {title: 'Delete Judge?'})"
                             title="Delete Judge">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -108,11 +108,11 @@
                     <span class="badge {{ $judge->is_active ? 'badge-success' : 'badge-secondary' }}">
                         {{ $judge->is_active ? 'Active' : 'Inactive' }}
                     </span>
-                    <form action="{{ route('judges.toggleActive', $judge->id) }}" method="POST" style="display: inline;">
+                        <form action="{{ route('judges.toggleActive', $judge->id) }}" method="POST" style="display: inline;" id="toggleActiveForm">
                         @csrf
-                        <button type="submit"
-                                class="btn-icon {{ $judge->is_active ? 'btn-icon-deactivate' : 'btn-icon-activate' }}"
-                                onclick="return confirm('Are you sure you want to {{ $judge->is_active ? 'deactivate' : 'activate' }} this judge?')"
+                        <button type="button"
+                                class="btn-icon {{ $judge->is_active ? 'btn-icon-delete' : 'btn-icon-view' }}"
+                                onclick="confirmForm(document.getElementById('toggleActiveForm'), 'Are you sure you want to {{ $judge->is_active ? 'deactivate' : 'activate' }} this judge?', {title: '{{ $judge->is_active ? 'Deactivate' : 'Activate' }} Judge?', danger: '{{ $judge->is_active ? 'high' : 'medium' }}'})"
                                 title="{{ $judge->is_active ? 'Deactivate' : 'Activate' }} Judge">
                             <i class="fas fa-{{ $judge->is_active ? 'ban' : 'check' }}"></i>
                         </button>

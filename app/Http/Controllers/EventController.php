@@ -177,4 +177,18 @@ class EventController extends Controller
         return redirect()->route('events.show', $event->id)
             ->with('success', 'Judges assigned successfully.');
     }
+
+    public function archive(Event $event)
+    {
+        $event->update(['is_archived' => true]);
+        AuditLog::log('event_archived', 'Archived event: ' . $event->name);
+        return redirect()->back()->with('success', 'Event archived successfully.');
+    }
+
+    public function unarchive(Event $event)
+    {
+        $event->update(['is_archived' => false]);
+        AuditLog::log('event_unarchived', 'Unarchived event: ' . $event->name);
+        return redirect()->back()->with('success', 'Event unarchived successfully.');
+    }
 }

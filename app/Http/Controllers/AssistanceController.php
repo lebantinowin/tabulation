@@ -40,7 +40,7 @@ class AssistanceController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $events = Event::all();
+        $events = Event::where('is_archived', false)->get();
 
         return view('judge.assistance.index', compact('requests', 'events'));
     }

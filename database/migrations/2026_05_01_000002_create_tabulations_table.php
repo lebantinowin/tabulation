@@ -8,19 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('scores', function (Blueprint $table) {
+        Schema::create('tabulations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('contestant_id')->constrained()->onDelete('cascade');
-            $table->foreignId('criteria_id')->constrained('criteria')->onDelete('cascade');
-            $table->foreignId('judge_id')->constrained('users')->onDelete('cascade');
-            $table->decimal('score', 5, 2);
-            $table->text('remarks')->nullable();
+            $table->decimal('total_score', 10, 4)->nullable();
+            $table->integer('rank')->nullable();
+            $table->boolean('is_locked')->default(false);
+            $table->text('message')->nullable();
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('scores');
+        Schema::dropIfExists('tabulations');
     }
 };

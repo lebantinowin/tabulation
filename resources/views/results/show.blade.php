@@ -79,44 +79,8 @@
                         </td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 1rem;">
-                                @php
-                                $imagePath = $result['contestant']->image;
-                                $fullPath = '';
-                                $imageFound = false;
-                                
-                                // Build list of possible paths based on stored image path
-                                $possiblePaths = [];
-                                
-                                if ($imagePath) {
-                                    // If the path already contains 'storage', use as-is
-                                    if (str_contains($imagePath, 'storage/')) {
-                                        $possiblePaths[] = $imagePath;
-                                    }
-                                    // If the path has contestants prefix
-                                    elseif (str_contains($imagePath, 'contestants/')) {
-                                        $possiblePaths[] = 'storage/' . $imagePath;
-                                        $possiblePaths[] = $imagePath;
-                                    }
-                                    // Just the filename
-                                    else {
-                                        $possiblePaths[] = 'storage/contestants/' . $imagePath;
-                                        $possiblePaths[] = 'storage/' . $imagePath;
-                                        $possiblePaths[] = 'contestants/' . $imagePath;
-                                        $possiblePaths[] = $imagePath;
-                                    }
-                                }
-                                
-                                foreach ($possiblePaths as $path) {
-                                    if (file_exists(public_path($path))) {
-                                        $fullPath = $path;
-                                        $imageFound = true;
-                                        break;
-                                    }
-                                }
-                                @endphp
-                                
-                                @if($imageFound && $fullPath)
-                                    <img src="{{ asset($fullPath) }}" alt="{{ $result['contestant']->name }}" class="profile-image">
+                                @if($result['contestant']->image_url)
+                                    <img src="{{ $result['contestant']->image_url }}" alt="{{ $result['contestant']->name }}" class="profile-image">
                                 @else
                                     <div class="user-avatar">
                                         {{ substr($result['contestant']->name, 0, 1) }}
@@ -180,40 +144,8 @@
                                 <td style="text-align: center;">{{ $index + 1 }}</td>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 1rem;">
-                                        @php
-                                        $crImagePath = $cr['contestant']->image;
-                                        $crFullPath = '';
-                                        $crImageFound = false;
-                                        
-                                        $crPossiblePaths = [];
-                                        
-                                        if ($crImagePath) {
-                                            if (str_contains($crImagePath, 'storage/')) {
-                                                $crPossiblePaths[] = $crImagePath;
-                                            }
-                                            elseif (str_contains($crImagePath, 'contestants/')) {
-                                                $crPossiblePaths[] = 'storage/' . $crImagePath;
-                                                $crPossiblePaths[] = $crImagePath;
-                                            }
-                                            else {
-                                                $crPossiblePaths[] = 'storage/contestants/' . $crImagePath;
-                                                $crPossiblePaths[] = 'storage/' . $crImagePath;
-                                                $crPossiblePaths[] = 'contestants/' . $crImagePath;
-                                                $crPossiblePaths[] = $crImagePath;
-                                            }
-                                        }
-                                        
-                                        foreach ($crPossiblePaths as $crPath) {
-                                            if (file_exists(public_path($crPath))) {
-                                                $crFullPath = $crPath;
-                                                $crImageFound = true;
-                                                break;
-                                            }
-                                        }
-                                        @endphp
-                                        
-                                        @if($crImageFound && $crFullPath)
-                                            <img src="{{ asset($crFullPath) }}" alt="{{ $cr['contestant']->name }}" class="profile-image-sm">
+                                        @if($cr['contestant']->image_url)
+                                            <img src="{{ $cr['contestant']->image_url }}" alt="{{ $cr['contestant']->name }}" class="profile-image-sm">
                                         @else
                                             <div class="user-avatar">
                                                 {{ substr($cr['contestant']->name, 0, 1) }}

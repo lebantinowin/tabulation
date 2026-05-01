@@ -15,6 +15,7 @@ class Criteria extends Model
         'event_id',
         'name',
         'weight',
+        'max_points',
         'description',
     ];
 
@@ -23,10 +24,7 @@ class Criteria extends Model
         return $this->belongsTo(Event::class);
     }
 
-    public function subCriteria()
-    {
-        return $this->hasMany(SubCriteria::class);
-    }
+
 
     public function scores()
     {

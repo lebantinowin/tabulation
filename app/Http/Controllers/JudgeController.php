@@ -4,11 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\AuditLog;
+use App\Models\Event;
+use App\Models\Contestant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class JudgeController extends Controller
 {
+    public function dashboard()
+    {
+        $judge = Auth::user();
+        $event = $judge->event_id ? Event::find($judge->event_id) : null;
+        $contestants = $event ? Contestant::where('event_id', $event->id)->get() : collect();
+        
+        return view('judge.dashboard', compact('judge', 'event', 'contestants'));
+    }
+
     public function index()
     {
         $judges = User::where('role', 'judge')->get();
@@ -33,6 +46,7 @@ class JudgeController extends Controller
         $judge->is_active  = true;
         $judge->event_id   = $request->event_id;
         $judge->login_code = $this->generateUniqueLoginCode();
+        $judge->password   = bcrypt(Str::random(16));
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('judges', 'public');
@@ -122,7 +136,7 @@ class JudgeController extends Controller
         do {
             $code = '';
             for ($i = 0; $i < $length; $i++) {
-                $code .= $characters[rand(0, strlen($characters) - 1)];
+                $code .= $characters[random_int(0, strlen($characters) - 1)];
             }
         } while (User::where('login_code', $code)->exists());
 

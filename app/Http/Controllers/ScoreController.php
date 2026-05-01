@@ -18,7 +18,7 @@ class ScoreController extends Controller
         $eventId = $request->get('event_id');
         
         $scores = Score::with(['contestant', 'criteria', 'judge'])
-            ->where('user_id', Auth::id());
+            ->where('judge_id', Auth::id());
         
         if ($eventId) {
             $scores = $scores->whereHas('contestant', function ($query) use ($eventId) {
@@ -28,7 +28,7 @@ class ScoreController extends Controller
         
         $scores = $scores->get();
         
-        $events = Event::all();
+        $events = Event::where('is_archived', false)->get();
         $judges = \App\Models\User::where('role', 'judge')->get();
         
         return view('judge.scores.index', compact('scores', 'events', 'judges', 'eventId'));
@@ -41,7 +41,7 @@ class ScoreController extends Controller
         
         $contestants = $eventId ? Contestant::where('event_id', $eventId)->get() : Contestant::all();
         $criterias = $eventId ? Criteria::where('event_id', $eventId)->get() : Criteria::all();
-        $events = Event::all();
+        $events = Event::where('is_archived', false)->get();
         
         return view('judge.scores.create', compact('contestants', 'criterias', 'events', 'eventId'));
     }
@@ -52,20 +52,29 @@ class ScoreController extends Controller
         $request->validate([
             'contestant_id' => 'required|exists:contestants,id',
             'criteria_id' => 'required|exists:criterias,id',
-            'score' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $criteria = Criteria::findOrFail($request->criteria_id);
+
+        $request->validate([
+            'score' => 'required|numeric|min:0|max:' . ($criteria->max_points ?? 100),
         ]);
 
         $data = $request->all();
-        $data['user_id'] = Auth::id();
-
-        // Check if score already exists for this judge, contestant, and criteria
-        $existingScore = Score::where('user_id', Auth::id())
-            ->where('contestant_id', $request->contestant_id)
-            ->where('criteria_id', $request->criteria_id)
-            ->first();
+        $data['judge_id'] = Auth::id();
 
         $contestant = Contestant::find($request->contestant_id);
         $criteria = Criteria::find($request->criteria_id);
+
+        if ($contestant->event_id !== Auth::user()->event_id) {
+            return back()->with('error', 'Unauthorized: Contestant does not belong to your assigned event.');
+        }
+
+        // Check if score already exists for this judge, contestant, and criteria
+        $existingScore = Score::where('judge_id', Auth::id())
+            ->where('contestant_id', $request->contestant_id)
+            ->where('criteria_id', $request->criteria_id)
+            ->first();
 
         if ($existingScore) {
             if ($existingScore->is_locked) {
@@ -111,7 +120,7 @@ class ScoreController extends Controller
             foreach ($criteriaIds as $criteriaId) {
                 $hasScore = Score::where('contestant_id', $contestantId)
                     ->where('criteria_id', $criteriaId)
-                    ->where('user_id', Auth::id())
+                    ->where('judge_id', Auth::id())
                     ->exists();
                     
                 if (!$hasScore) {
@@ -136,7 +145,7 @@ class ScoreController extends Controller
     public function unlock(Score $score)
     {
         // Only allow judge to unlock their own scores
-        if ($score->user_id != Auth::id() && !Auth::user()->isAdmin()) {
+        if ($score->judge_id != Auth::id() && !Auth::user()->isAdmin()) {
             return back()->with('error', 'Unauthorized to unlock this score.');
         }
 
@@ -157,12 +166,20 @@ class ScoreController extends Controller
     // Display the specified resource.
     public function show(Score $score)
     {
+        if ($score->judge_id != Auth::id() && !Auth::user()->isAdmin()) {
+            return back()->with('error', 'Unauthorized to view this score.');
+        }
+
         return view('judge.scores.show', compact('score'));
     }
 
     // Show the form for editing the specified resource.
     public function edit(Score $score)
     {
+        if ($score->judge_id != Auth::id() && !Auth::user()->isAdmin()) {
+            return back()->with('error', 'Unauthorized to edit this score.');
+        }
+
         if ($score->is_locked) {
             return back()->with('error', 'Cannot edit a locked score.');
         }
@@ -175,6 +192,10 @@ class ScoreController extends Controller
     // Update the specified resource in storage.
     public function update(Request $request, Score $score)
     {
+        if ($score->judge_id != Auth::id() && !Auth::user()->isAdmin()) {
+            return back()->with('error', 'Unauthorized to update this score.');
+        }
+
         if ($score->is_locked) {
             return back()->with('error', 'Cannot update a locked score.');
         }
@@ -182,11 +203,19 @@ class ScoreController extends Controller
         $request->validate([
             'contestant_id' => 'required|exists:contestants,id',
             'criteria_id' => 'required|exists:criterias,id',
-            'score' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $criteria = Criteria::findOrFail($request->criteria_id);
+
+        $request->validate([
+            'score' => 'required|numeric|min:0|max:' . ($criteria->max_points ?? 100),
         ]);
 
         $contestant = Contestant::find($request->contestant_id);
-        $criteria = Criteria::find($request->criteria_id);
+
+        if ($contestant->event_id !== Auth::user()->event_id) {
+            return back()->with('error', 'Unauthorized: Contestant does not belong to your assigned event.');
+        }
 
         $score->update($request->all());
 
@@ -200,6 +229,10 @@ class ScoreController extends Controller
     // Remove the specified resource from storage.
     public function destroy(Score $score)
     {
+        if ($score->judge_id != Auth::id() && !Auth::user()->isAdmin()) {
+            return back()->with('error', 'Unauthorized to delete this score.');
+        }
+
         if ($score->is_locked) {
             return back()->with('error', 'Cannot delete a locked score.');
         }

@@ -1,27 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Score - Judge</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container mt-5">
-        <h2>Score Details</h2>
-        
-        <div class="card">
-            <div class="card-body">
-                <p><strong>Contestant:</strong> {{ $score->contestant->name ?? 'N/A' }}</p>
-                <p><strong>Criteria:</strong> {{ $score->criteria->name ?? 'N/A' }}</p>
-                <p><strong>Score:</strong> {{ $score->score }}</p>
-                <p><strong>Remarks:</strong> {{ $score->remarks ?? 'N/A' }}</p>
-                <p><strong>Date:</strong> {{ $score->created_at->format('M d, Y H:i') }}</p>
+@extends('layouts.app')
+
+@section('title', 'View Score - Judge')
+
+@section('content')
+<div class="page-header">
+    <h1>Score Details</h1>
+    <a href="{{ route('scores.index') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-body">
+        <div class="mb-3">
+            <label>Contestant:</label>
+            <div class="p-3" style="background: var(--color-main); border-radius: 8px;">
+                {{ $score->contestant->name ?? 'N/A' }}
+            </div>
+        </div>
+        <div class="mb-3">
+            <label>Criteria:</label>
+            <div class="p-3" style="background: var(--color-main); border-radius: 8px;">
+                {{ $score->criteria->name ?? 'N/A' }}
+            </div>
+        </div>
+        <div class="mb-3">
+            <label>Score:</label>
+            <div class="p-3" style="background: var(--color-main); border-radius: 8px; font-weight: bold; font-size: 1.2rem;">
+                {{ $score->score }}
+            </div>
+        </div>
+        <div class="mb-3">
+            <label>Remarks:</label>
+            <div class="p-3" style="background: var(--color-main); border-radius: 8px; min-height: 100px;">
+                {{ $score->remarks ?? 'N/A' }}
+            </div>
+        </div>
+        <div class="mb-4">
+            <label>Date:</label>
+            <div class="text-muted">
+                {{ $score->created_at->format('M d, Y H:i') }}
             </div>
         </div>
         
-        <a href="{{ route('scores.edit', $score->id) }}" class="btn btn-warning mt-3">Edit</a>
-        <a href="{{ route('scores.index') }}" class="btn btn-secondary mt-3">Back to List</a>
+        <div class="text-center">
+            <a href="{{ route('scores.edit', $score->id) }}" class="btn btn-primary w-full">
+                <i class="fas fa-edit"></i> Edit Score
+            </a>
+        </div>
     </div>
-</body>
-</html>
+</div>
+@endsection

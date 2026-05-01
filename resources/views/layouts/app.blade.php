@@ -24,6 +24,14 @@
             --color-border: #cccccc;
             --sidebar-width: 260px;
             --sidebar-collapsed: 70px;
+            
+            /* Semantic Colors */
+            --color-primary: #040D12;
+            --color-secondary: #4A5568;
+            --color-success: #2F855A;
+            --color-warning: #C05621;
+            --color-danger: #C53030;
+            --color-info: #2B6CB0;
         }
         
         body {
@@ -242,6 +250,16 @@
             border: 1px solid var(--color-border);
         }
         
+        .card-clickable { text-decoration: none; display: block; }
+        .card-clickable .card { transition: all 0.2s ease; cursor: pointer; }
+        .card-clickable .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: var(--color-btn);
+        }
+        .card-clickable .card h3 { color: var(--color-text); }
+        .card-clickable .card h3 i { margin-right: 0.5rem; color: var(--color-btn); }
+        
         .btn {
             display: inline-block;
             padding: 0.6rem 1.2rem;
@@ -393,22 +411,22 @@
         }
         
         .badge-success {
-            background: #28a745;
+            background: var(--color-success);
             color: var(--color-white);
         }
         
         .badge-warning {
-            background: #D4A574;
-            color: var(--color-text);
+            background: var(--color-warning);
+            color: var(--color-white);
         }
         
         .badge-danger {
-            background: #dc3545;
+            background: var(--color-danger);
             color: var(--color-white);
         }
         
         .badge-secondary {
-            background: #6c757d;
+            background: var(--color-secondary);
             color: var(--color-white);
         }
         
@@ -605,28 +623,134 @@
         }
         
         .btn-icon-edit {
-            background: #D4A574;
+            background: var(--color-warning);
         }
         
         .btn-icon-edit:hover {
-            background: #b8956a;
+            background: #9c4221;
         }
         
         .btn-icon-delete {
-            background: #8B4513;
+            background: var(--color-danger);
         }
         
         .btn-icon-delete:hover {
-            background: #6B3410;
+            background: #9b2c2c;
         }
         
         .btn-icon-view {
-            background: #697565;
+            background: var(--color-success);
         }
         
         .btn-icon-view:hover {
-            background: #3C3D37;
+            background: #22543d;
         }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--color-muted);
+            background: none;
+            border: none;
+            transition: color 0.2s;
+        }
+        
+        .modal-close:hover {
+            color: var(--color-danger);
+        }
+
+        /* Utility Classes */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .gap-1 { gap: 0.25rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 1rem; }
+        .gap-4 { gap: 1.5rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-3 { margin-top: 1rem; }
+        .mt-4 { margin-top: 1.5rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 1rem; }
+        .mb-4 { margin-bottom: 1.5rem; }
+        .p-3 { padding: 1rem; }
+        .p-4 { padding: 1.5rem; }
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+        .text-center { text-align: center; }
+        .w-full { width: 100%; }
+
+        /* Tabs Styles */
+        .nav-tabs {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1.5rem 0;
+            border-bottom: 1px solid var(--color-border);
+            gap: 1rem;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--color-muted);
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .tab-btn.active {
+            color: var(--color-btn);
+            border-bottom-color: var(--color-btn);
+        }
+        
+        .tab-btn:hover {
+            color: var(--color-btn);
+        }
+
         
         /* Banner styles */
         .event-banner {
@@ -681,8 +805,10 @@
                 <a href="{{ route('events.index') }}"><i class="fas fa-calendar-alt"></i> <span>Events</span></a>
                 <a href="{{ route('contestants.index') }}"><i class="fas fa-users"></i> <span>Contestants</span></a>
                 <a href="{{ route('judges.index') }}"><i class="fas fa-user-tie"></i> <span>Judges</span></a>
+                <a href="{{ route('assistance.index') }}"><i class="fas fa-hands-helping"></i> <span>Assistance</span> <span id="assistance-badge" class="badge badge-danger" style="display:none; margin-left:auto; font-size: 0.7rem; padding: 0.2rem 0.5rem;">0</span></a>
                 <a href="{{ route('results.index') }}"><i class="fas fa-trophy"></i> <span>Results</span></a>
                 <a href="{{ route('auditLogs.index') }}"><i class="fas fa-clipboard-list"></i> <span>Audit Logs</span></a>
+                <a href="{{ route('trash.index') }}"><i class="fas fa-trash-restore"></i> <span>Recycle Bin</span></a>
             @elseif(auth()->user()->isJudge())
                 <a href="{{ route('judge.dashboard') }}"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
                 <a href="{{ route('scores.index') }}"><i class="fas fa-star"></i> <span>Scores</span></a>
@@ -776,10 +902,105 @@
                 mainContent.classList.add('expanded');
                 toggleBtn.style.left = '70px';
                 const toggleIcon = document.getElementById('toggle-icon');
-                toggleIcon.classList.remove('fa-chevron-left');
-                toggleIcon.classList.add('fa-chevron-right');
+                if(toggleIcon) {
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');
+                }
             }
         });
+
+        @if(auth()->check() && auth()->user()->isAdmin())
+        // Polling for assistance requests
+        function checkAssistanceRequests() {
+            fetch('{{ route("admin.assistance.pending") }}')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('assistance-badge');
+                    if (badge) {
+                        if (data.count > 0) {
+                            badge.innerText = data.count;
+                            badge.style.display = 'inline-block';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching assistance requests:', error));
+        }
+
+        // Check immediately and then every 15 seconds
+        checkAssistanceRequests();
+        setInterval(checkAssistanceRequests, 15000);
+        @endif
+    </script>
+
+    <!-- ─── Global Custom Confirm Modal ─── -->
+    <div id="confirmModal" class="modal" style="z-index: 99999;">
+        <div class="modal-content" style="max-width: 420px; text-align: center; padding: 2.5rem 2rem;">
+            <div id="confirmIcon" style="font-size: 3rem; margin-bottom: 1rem;">
+                <i class="fas fa-exclamation-triangle" style="color: var(--color-warning);"></i>
+            </div>
+            <h3 id="confirmTitle" style="margin-bottom: 0.5rem; font-size: 1.2rem;"></h3>
+            <p id="confirmMessage" style="color: var(--color-muted); margin-bottom: 2rem; font-size: 0.95rem; line-height: 1.6;"></p>
+            <div class="flex gap-2 justify-center">
+                <button id="confirmCancelBtn" class="btn" style="background: var(--color-muted); min-width: 100px;" onclick="closeConfirmModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button id="confirmOkBtn" class="btn" style="background: var(--color-danger); min-width: 100px;" onclick="confirmProceed()">
+                    <i class="fas fa-check"></i> Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let _confirmCallback = null;
+
+        function confirmAction(message, callback, options = {}) {
+            const title = options.title || 'Are you sure?';
+            const dangerLevel = options.danger || 'high'; // 'high' = red, 'medium' = warning
+
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = message;
+
+            const okBtn = document.getElementById('confirmOkBtn');
+            if (dangerLevel === 'high') {
+                okBtn.style.background = 'var(--color-danger)';
+                document.getElementById('confirmIcon').innerHTML = '<i class="fas fa-exclamation-triangle" style="color: var(--color-warning);"></i>';
+            } else {
+                okBtn.style.background = 'var(--color-warning)';
+                document.getElementById('confirmIcon').innerHTML = '<i class="fas fa-question-circle" style="color: var(--color-info);"></i>';
+            }
+
+            _confirmCallback = callback;
+            document.getElementById('confirmModal').classList.add('active');
+            document.getElementById('confirmOkBtn').focus();
+        }
+
+        function confirmProceed() {
+            closeConfirmModal();
+            if (typeof _confirmCallback === 'function') {
+                _confirmCallback();
+            }
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+            _confirmCallback = null;
+        }
+
+        // Keyboard support: Enter = confirm, Escape = cancel
+        document.addEventListener('keydown', function(e) {
+            const modal = document.getElementById('confirmModal');
+            if (!modal.classList.contains('active')) return;
+            if (e.key === 'Escape') closeConfirmModal();
+            if (e.key === 'Enter') confirmProceed();
+        });
+
+        // Helper: attach to a form's delete/dangerous button
+        function confirmForm(formEl, message, options = {}) {
+            confirmAction(message, function() { formEl.submit(); }, options);
+        }
     </script>
 </body>
 </html>

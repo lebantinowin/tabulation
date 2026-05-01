@@ -18,7 +18,7 @@ class CriteriaController extends Controller
     // Show the form for creating a new resource.
     public function create()
     {
-        $events = Event::where('status', 'active')->get();
+        $events = Event::whereIn('status', ['upcoming', 'ongoing'])->get();
         $selectedEventId = request()->get('event_id');
         return view('admin.criteria.create', compact('events', 'selectedEventId'));
     }
@@ -30,6 +30,7 @@ class CriteriaController extends Controller
             'event_id' => 'required|exists:events,id',
             'name' => 'required|string|max:255',
             'weight' => 'required|numeric|min:0|max:100',
+            'max_points' => 'required|integer|min:1',
             'description' => 'nullable|string',
         ]);
 
@@ -46,41 +47,41 @@ class CriteriaController extends Controller
     }
 
     // Display the specified resource.
-    public function show(Criteria $criterium)
+    public function show(Criteria $criteria)
     {
-        return view('admin.criteria.show', compact('criterium'));
+        return view('admin.criteria.show', compact('criteria'));
     }
 
     // Show the form for editing the specified resource.
-    public function edit(Criteria $criterium)
+    public function edit(Criteria $criteria)
     {
-        $events = Event::where('status', 'active')->get();
-        return view('admin.criteria.edit', compact('criterium', 'events'));
+        $events = Event::whereIn('status', ['upcoming', 'ongoing'])->get();
+        return view('admin.criteria.edit', compact('criteria', 'events'));
     }
 
     // Update the specified resource in storage.
-    public function update(Request $request, Criteria $criterium)
+    public function update(Request $request, Criteria $criteria)
     {
         $request->validate([
             'event_id' => 'required|exists:events,id',
             'name' => 'required|string|max:255',
             'weight' => 'required|numeric|min:0|max:100',
+            'max_points' => 'required|integer|min:1',
             'description' => 'nullable|string',
         ]);
 
-        $criterium->update($request->all());
+        $criteria->update($request->all());
 
         return redirect()->route('criteria.index')
             ->with('success', 'Criteria updated successfully.');
     }
 
     // Remove the specified resource from storage.
-    public function destroy(Criteria $criterium)
+    public function destroy(Criteria $criteria)
     {
-        $eventId = $criterium->event_id;
-        $criterium->delete();
+        $eventId = $criteria->event_id;
+        $criteria->delete();
 
-        // Redirect back to the event show page if it was from an event
         if ($eventId) {
             return redirect()->route('events.show', $eventId)
                 ->with('success', 'Criteria deleted successfully.');

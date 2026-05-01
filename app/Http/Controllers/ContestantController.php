@@ -20,7 +20,7 @@ class ContestantController extends Controller
         }
         
         $contestants = $contestants->orderBy('number')->get();
-        $events = Event::all();
+        $events = Event::where('is_archived', false)->get();
         
         return view('contestants.public', compact('contestants', 'events'));
     }
@@ -35,7 +35,7 @@ class ContestantController extends Controller
     // Show the form for creating a new resource.
     public function create()
     {
-        $events = Event::all();
+        $events = Event::where('is_archived', false)->get();
         return view('admin.contestants.create', compact('events'));
     }
 
@@ -72,7 +72,7 @@ class ContestantController extends Controller
     // Show the form for editing the specified resource.
     public function edit(Contestant $contestant)
     {
-        $events = Event::all();
+        $events = Event::where('is_archived', false)->get();
         return view('admin.contestants.edit', compact('contestant', 'events'));
     }
 

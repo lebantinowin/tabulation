@@ -29,13 +29,13 @@
             <select id="criteria_id" name="criteria_id" required>
                 <option value="">Select Criteria</option>
                 @foreach($criterias as $criteria)
-                    <option value="{{ $criteria->id }}">{{ $criteria->name }} ({{ $criteria->weight }}%)</option>
+                    <option value="{{ $criteria->id }}" data-max="{{ $criteria->max_points ?? 100 }}">{{ $criteria->name }} ({{ $criteria->weight }}%)</option>
                 @endforeach
             </select>
         </div>
         
         <div class="form-group">
-            <label for="score">Score (0-100)</label>
+            <label for="score">Score (0-<span id="score-max-label">100</span>)</label>
             <input type="number" id="score" name="score" min="0" max="100" step="0.01" required>
         </div>
         
@@ -50,4 +50,22 @@
         </div>
     </form>
 </div>
+
+<script>
+document.getElementById('criteria_id').addEventListener('change', function() {
+    var selectedOption = this.options[this.selectedIndex];
+    if (!selectedOption.value) return;
+    
+    var maxPoints = selectedOption.getAttribute('data-max') || 100;
+    var scoreInput = document.getElementById('score');
+    var maxLabel = document.getElementById('score-max-label');
+    
+    scoreInput.max = maxPoints;
+    maxLabel.innerText = maxPoints;
+    
+    if (parseFloat(scoreInput.value) > maxPoints) {
+        scoreInput.value = maxPoints;
+    }
+});
+</script>
 @endsection

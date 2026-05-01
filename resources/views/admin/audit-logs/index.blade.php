@@ -45,20 +45,20 @@
             </tbody>
         </table>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; flex-wrap: wrap; gap: 1rem;">
+        <div class="flex justify-between items-center mt-3 gap-3" style="flex-wrap: wrap;">
             <div class="pagination-info">
                 Showing {{ $auditLogs->firstItem() ?? 0 }} to {{ $auditLogs->lastItem() ?? 0 }} of {{ $auditLogs->total() ?? 0 }} results
             </div>
             <div>
-                {{ $auditLogs->links('pagination::bootstrap-4') }}
+                {{ $auditLogs->links() }}
             </div>
         </div>
         @else
-        <div class="text-center" style="padding: 2rem;">
-            <p style="color: var(--color-muted); font-size: 1.1rem;">
+        <div class="text-center p-4">
+            <p class="mb-2 text-muted" style="font-size: 1.1rem;">
                 <i class="fas fa-info-circle"></i> No audit logs found. The table may not exist yet.
             </p>
-            <p style="color: var(--color-muted);">Please run <code>php artisan migrate</code> to create the necessary tables.</p>
+            <p class="text-muted">Please run <code>php artisan migrate</code> to create the necessary tables.</p>
         </div>
     @endif
 

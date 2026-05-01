@@ -90,7 +90,7 @@
         <form action="{{ route('events.destroy', $event->id) }}" method="POST" style="display: inline;">
             @csrf
             @method('DELETE')
-            <button type="submit" class="btn-icon btn-icon-delete" onclick="return confirm('Are you sure you want to delete this event?')" title="Delete Event">
+            <button type="button" class="btn-icon btn-icon-delete" onclick="confirmForm(this.closest('form'), 'This event and all its associated data will be deleted.', {title: 'Delete Event?'})" title="Delete Event">
                 <i class="fas fa-trash"></i>
             </button>
         </form>
@@ -193,10 +193,10 @@
                         <a href="{{ route('criteria.edit', $criteria->id) }}" class="btn-icon btn-icon-edit" title="Edit">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <form action="{{ route('criteria.destroy', $criteria->id) }}" method="POST" style="display: inline;">
+                            <form action="{{ route('criteria.destroy', $criteria->id) }}" method="POST" style="display: inline;" id="delCriteriaShow{{ $criteria->id }}">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn-icon btn-icon-delete" onclick="return confirm('Delete this criteria?')" title="Delete">
+                            <button type="button" class="btn-icon btn-icon-delete" onclick="confirmForm(document.getElementById('delCriteriaShow{{ $criteria->id }}'), 'This criteria will be removed from the event.', {title: 'Delete Criteria?'})" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>

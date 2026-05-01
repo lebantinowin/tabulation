@@ -72,8 +72,8 @@
                       method="POST" style="display: inline;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn-icon btn-icon-delete"
-                            onclick="return confirm('Are you sure you want to delete this contestant?')"
+                    <button type="button" class="btn-icon btn-icon-delete"
+                            onclick="confirmForm(this.closest('form'), 'This contestant and all their scores will be deleted.', {title: 'Delete Contestant?'})"
                             title="Delete Contestant">
                         <i class="fas fa-trash"></i>
                     </button>
