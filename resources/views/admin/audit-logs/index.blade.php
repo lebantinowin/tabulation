@@ -50,7 +50,27 @@
                 Showing {{ $auditLogs->firstItem() ?? 0 }} to {{ $auditLogs->lastItem() ?? 0 }} of {{ $auditLogs->total() ?? 0 }} results
             </div>
             <div>
-                {{ $auditLogs->links() }}
+            <div class="custom-pagination" style="display: flex; gap: 0.5rem;">
+                @if ($auditLogs->onFirstPage())
+                    <button class="btn btn-icon" style="background: var(--color-muted); cursor: not-allowed; opacity: 0.5;" disabled title="Previous Page">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                @else
+                    <a href="{{ $auditLogs->previousPageUrl() }}" class="btn btn-icon" style="background: var(--color-btn);" title="Previous Page">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                @endif
+
+                @if ($auditLogs->hasMorePages())
+                    <a href="{{ $auditLogs->nextPageUrl() }}" class="btn btn-icon" style="background: var(--color-btn);" title="Next Page">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                @else
+                    <button class="btn btn-icon" style="background: var(--color-muted); cursor: not-allowed; opacity: 0.5;" disabled title="Next Page">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                @endif
+            </div>
             </div>
         </div>
         @else

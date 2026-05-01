@@ -8,7 +8,6 @@ use App\Http\Controllers\ContestantController;
 use App\Http\Controllers\ScoreController;
 use App\Http\Controllers\TabulationController;
 use App\Http\Controllers\JudgeController;
-use App\Http\Controllers\AssistanceController;
 use App\Http\Controllers\AuditLogController;
 
 // Landing Page
@@ -39,7 +38,6 @@ Route::middleware(['auth', 'role:judge'])->group(function () {
 // Admin Dashboard
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
-    Route::get('/api/assistance/pending', [App\Http\Controllers\AdminController::class, 'pendingAssistance'])->name('admin.assistance.pending');
 
     // Event Management
     Route::post('/events/{event}/archive', [App\Http\Controllers\EventController::class, 'archive'])->name('events.archive');
@@ -76,11 +74,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/events/{event}/assign-judges', [EventController::class, 'assignJudges'])->name('events.assignJudges');
     Route::post('/events/{event}/assign-judges', [EventController::class, 'storeAssignedJudges'])->name('events.storeAssignedJudges');
 
-    // Assistance Requests
-    Route::get('/assistance', [AssistanceController::class, 'index'])->name('assistance.index');
-    Route::post('/assistance/{id}/confirm', [AssistanceController::class, 'confirm'])->name('assistance.confirm');
-    Route::delete('/assistance/{id}', [AssistanceController::class, 'destroy'])->name('assistance.destroy');
-
     // Tabulation Control
     Route::get('/tabulation/results', [TabulationController::class, 'results'])->name('tabulation.results');
     Route::post('/tabulation/override', [TabulationController::class, 'override'])->name('tabulation.override');
@@ -114,8 +107,4 @@ Route::middleware(['auth', 'role:judge'])->group(function () {
     // Profile Management
     Route::get('/judge/profile', [AuthController::class, 'profile'])->name('judge.profile');
     Route::post('/judge/profile/update', [AuthController::class, 'updateProfile'])->name('judge.profile.update');
-
-    // Assistance Requests
-    Route::get('/judge/assistance', [AssistanceController::class, 'myRequests'])->name('judge.assistance.index');
-    Route::post('/judge/assistance/request', [AssistanceController::class, 'request'])->name('judge.assistance.request');
 });

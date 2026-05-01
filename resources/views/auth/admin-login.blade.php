@@ -38,11 +38,56 @@
         font-size: 0.9rem;
     }
     
+    .floating-group {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .floating-group input {
+        width: 100%;
+        padding: 1.25rem 1rem 0.5rem;
+        font-size: 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        background: #fff;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .floating-group input:focus {
+        border-color: #040D12;
+        box-shadow: 0 0 0 3px rgba(4, 13, 18, 0.1);
+    }
+    
+    .floating-group label {
+        position: absolute;
+        top: 50%;
+        left: 1rem;
+        transform: translateY(-50%);
+        color: #718096;
+        font-size: 1rem;
+        pointer-events: none;
+        transition: all 0.2s ease;
+        background: #fff;
+        padding: 0 0.25rem;
+        margin: 0;
+    }
+    
+    .floating-group input:focus ~ label,
+    .floating-group input:not(:placeholder-shown) ~ label {
+        top: 0;
+        transform: translateY(-50%) scale(0.85);
+        color: #040D12;
+        font-weight: 600;
+    }
+    
     .login-card .btn {
         width: 100%;
         padding: 0.85rem;
-        font-size: 1rem;
-        margin-top: 0.5rem;
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin-top: 1rem;
+        border-radius: 8px;
     }
     
     .login-footer {
@@ -82,8 +127,7 @@
         <form method="POST" action="{{ route('admin.login') }}">
             @csrf
             
-            <div class="form-group">
-                <label for="email">Email Address</label>
+            <div class="floating-group">
                 <input 
                     type="email" 
                     id="email" 
@@ -91,19 +135,20 @@
                     value="{{ old('email') }}" 
                     required 
                     autofocus
-                    placeholder="admin@example.com"
+                    placeholder=" "
                 >
+                <label for="email">Email Address</label>
             </div>
             
-            <div class="form-group">
-                <label for="password">Password</label>
+            <div class="floating-group">
                 <input 
                     type="password" 
                     id="password" 
                     name="password" 
                     required
-                    placeholder="Enter your password"
+                    placeholder=" "
                 >
+                <label for="password">Password</label>
             </div>
             
             <button type="submit" class="btn">

@@ -86,11 +86,11 @@
             </td>
             <td>
                 <div class="actions" style="display: flex; gap: 0.5rem;">
-                    <form action="{{ route('judges.toggleActive', $judge->id) }}" method="POST" style="display: inline;" id="toggleForm{{ $judge->id }}">
+                    <form action="{{ route('judges.toggleActive', $judge->id) }}" method="POST" style="display: inline;">
                         @csrf
                         <button type="button"
                             class="btn-icon {{ $judge->is_active ? 'btn-icon-delete' : 'btn-icon-view' }}"
-                            onclick="confirmForm(document.getElementById('toggleForm{{ $judge->id }}'), 'Are you sure you want to {{ $judge->is_active ? 'deactivate' : 'activate' }} this judge?', {title: '{{ $judge->is_active ? 'Deactivate' : 'Activate' }} Judge?', danger: '{{ $judge->is_active ? 'high' : 'medium' }}'})"
+                            onclick="confirmForm(this.closest('form'), 'Are you sure you want to {{ $judge->is_active ? 'deactivate' : 'activate' }} this judge?', {title: '{{ $judge->is_active ? 'Deactivate' : 'Activate' }} Judge?', danger: '{{ $judge->is_active ? 'high' : 'medium' }}'})"
                             title="{{ $judge->is_active ? 'Deactivate' : 'Activate' }} Judge">
                             <i class="fas fa-{{ $judge->is_active ? 'ban' : 'check' }}"></i>
                         </button>
@@ -101,10 +101,10 @@
                     <a href="{{ route('judges.edit', $judge->id) }}" class="btn-icon btn-icon-edit" title="Edit Judge">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <form action="{{ route('judges.destroy', $judge->id) }}" method="POST" style="display: inline;" id="deleteJudgeForm{{ $judge->id }}">
+                    <form action="{{ route('judges.destroy', $judge->id) }}" method="POST" style="display: inline;">
                         @csrf
                         @method('DELETE')
-                        <button type="button" class="btn-icon btn-icon-delete" onclick="confirmForm(document.getElementById('deleteJudgeForm{{ $judge->id }}'), 'This judge will be deleted. This action cannot be undone.', {title: 'Delete Judge?'})" title="Delete Judge">
+                        <button type="button" class="btn-icon btn-icon-delete" onclick="confirmForm(this.closest('form'), 'This judge will be deleted. This action cannot be undone.', {title: 'Delete Judge?'})" title="Delete Judge">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>

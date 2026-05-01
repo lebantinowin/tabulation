@@ -73,11 +73,56 @@
         display: block;
     }
     
+    .floating-group {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .floating-group input {
+        width: 100%;
+        padding: 1.25rem 1rem 0.5rem;
+        font-size: 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        background: #fff;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .floating-group input:focus {
+        border-color: #040D12;
+        box-shadow: 0 0 0 3px rgba(4, 13, 18, 0.1);
+    }
+    
+    .floating-group label {
+        position: absolute;
+        top: 50%;
+        left: 1rem;
+        transform: translateY(-50%);
+        color: #718096;
+        font-size: 1rem;
+        pointer-events: none;
+        transition: all 0.2s ease;
+        background: #fff;
+        padding: 0 0.25rem;
+        margin: 0;
+    }
+    
+    .floating-group input:focus ~ label,
+    .floating-group input:not(:placeholder-shown) ~ label {
+        top: 0;
+        transform: translateY(-50%) scale(0.85);
+        color: #040D12;
+        font-weight: 600;
+    }
+    
     .login-card .btn {
         width: 100%;
         padding: 0.85rem;
-        font-size: 1rem;
-        margin-top: 0.5rem;
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin-top: 1rem;
+        border-radius: 8px;
     }
     
     .login-footer {
@@ -147,14 +192,14 @@
             
             <!-- Admin Login Form -->
             <div class="login-form active" id="admin-form">
-                <div class="form-group">
+                <div class="floating-group">
+                    <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus placeholder=" ">
                     <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus placeholder="Enter your email">
                 </div>
                 
-                <div class="form-group">
+                <div class="floating-group">
+                    <input type="password" id="password" name="password" required placeholder=" ">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required placeholder="Enter your password">
                 </div>
                 
                 <button type="submit" class="btn">Sign In</button>
@@ -162,9 +207,9 @@
             
             <!-- Judge Login Form -->
             <div class="login-form" id="judge-form">
-                <div class="form-group">
+                <div class="floating-group">
+                    <input type="text" id="login_code" name="login_code" placeholder=" " maxlength="6" style="text-transform: uppercase; letter-spacing: 4px; text-align: left; font-size: 1.2rem; padding-top: 1.5rem; padding-bottom: 0.5rem;">
                     <label for="login_code">Login Code</label>
-                    <input type="text" id="login_code" name="login_code" placeholder="Enter your 6-digit code" maxlength="6" style="text-transform: uppercase; letter-spacing: 4px; text-align: center; font-size: 1.2rem;">
                 </div>
                 
                 <button type="submit" class="btn">Login with Code</button>

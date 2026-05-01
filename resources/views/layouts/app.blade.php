@@ -112,18 +112,19 @@
         .sidebar.collapsed .brand-text-full { display: none !important; }
         .sidebar.collapsed .brand-text-short { display: inline !important; }
         
-        /* Toggle Button - Outside sidebar on the right edge */
+        /* Toggle Button - Attached to sidebar */
         .sidebar-toggle-btn {
-            position: fixed;
-            left: 260px;
+            position: absolute;
+            right: -15px;
             top: 50%;
             transform: translateY(-50%);
-            background: var(--color-btn);
-            border: 2px solid var(--color-white);
+            background: var(--color-sidebar);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: none;
             color: var(--color-white);
-            width: 20px;
-            height: 40px;
-            border-radius: 10px;
+            width: 30px;
+            height: 60px;
+            border-radius: 0 15px 15px 0;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -131,22 +132,14 @@
             transition: all 0.3s ease;
             z-index: 9999;
             padding: 0;
-            font-size: 0.7rem;
+            font-size: 0.9rem;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.2);
         }
         
         .sidebar-toggle-btn:hover {
-            background: var(--color-btn-hover);
-            transform: translateY(-50%) scale(1.05);
-            left: 258px;
-        }
-        
-        .sidebar.collapsed + .sidebar-toggle-btn,
-        .sidebar.collapsed ~ .sidebar-toggle-btn {
-            left: 70px;
-        }
-        
-        .sidebar.collapsed ~ .sidebar-toggle-btn:hover {
-            left: 68px;
+            background: rgba(255, 255, 255, 0.1);
+            width: 35px;
+            right: -17px;
         }
         
         .sidebar .nav-links {
@@ -801,18 +794,18 @@
         
         <div class="nav-links">
             @if(auth()->user()->isAdmin())
-                <a href="{{ route('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
-                <a href="{{ route('events.index') }}"><i class="fas fa-calendar-alt"></i> <span>Events</span></a>
-                <a href="{{ route('contestants.index') }}"><i class="fas fa-users"></i> <span>Contestants</span></a>
-                <a href="{{ route('judges.index') }}"><i class="fas fa-user-tie"></i> <span>Judges</span></a>
-                <a href="{{ route('assistance.index') }}"><i class="fas fa-hands-helping"></i> <span>Assistance</span> <span id="assistance-badge" class="badge badge-danger" style="display:none; margin-left:auto; font-size: 0.7rem; padding: 0.2rem 0.5rem;">0</span></a>
-                <a href="{{ route('results.index') }}"><i class="fas fa-trophy"></i> <span>Results</span></a>
-                <a href="{{ route('auditLogs.index') }}"><i class="fas fa-clipboard-list"></i> <span>Audit Logs</span></a>
-                <a href="{{ route('trash.index') }}"><i class="fas fa-trash-restore"></i> <span>Recycle Bin</span></a>
+                <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
+                <a href="{{ route('events.index') }}" class="{{ request()->routeIs('events.*') ? 'active' : '' }}"><i class="fas fa-calendar-alt"></i> <span>Events</span></a>
+                <a href="{{ route('contestants.index') }}" class="{{ request()->routeIs('contestants.*') ? 'active' : '' }}"><i class="fas fa-users"></i> <span>Contestants</span></a>
+                <a href="{{ route('judges.index') }}" class="{{ request()->routeIs('judges.*') ? 'active' : '' }}"><i class="fas fa-user-tie"></i> <span>Judges</span></a>
+                <a href="{{ route('results.index') }}" class="{{ request()->routeIs('results.*') ? 'active' : '' }}"><i class="fas fa-trophy"></i> <span>Results</span></a>
+                <a href="{{ route('auditLogs.index') }}" class="{{ request()->routeIs('auditLogs.*') ? 'active' : '' }}"><i class="fas fa-clipboard-list"></i> <span>Audit Logs</span></a>
+                <a href="{{ route('trash.index') }}" class="{{ request()->routeIs('trash.*') ? 'active' : '' }}"><i class="fas fa-trash-restore"></i> <span>Recycle Bin</span></a>
             @elseif(auth()->user()->isJudge())
-                <a href="{{ route('judge.dashboard') }}"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
-                <a href="{{ route('scores.index') }}"><i class="fas fa-star"></i> <span>Scores</span></a>
-                <a href="{{ route('judge.profile') }}"><i class="fas fa-user"></i> <span>Profile</span></a>
+                <a href="{{ route('judge.dashboard') }}" class="{{ request()->routeIs('judge.dashboard') ? 'active' : '' }}"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a>
+                <a href="{{ route('scores.index') }}" class="{{ request()->routeIs('scores.*') ? 'active' : '' }}"><i class="fas fa-star"></i> <span>Scores</span></a>
+                <a href="{{ route('results.index') }}" class="{{ request()->routeIs('results.*') ? 'active' : '' }}"><i class="fas fa-trophy"></i> <span>Results</span></a>
+                <a href="{{ route('judge.profile') }}" class="{{ request()->routeIs('judge.profile') ? 'active' : '' }}"><i class="fas fa-user"></i> <span>Profile</span></a>
             @endif
         </div>
         
@@ -827,12 +820,11 @@
                 <button type="submit"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>
             </form>
         </div>
+        <!-- Toggle Button - Attached to sidebar -->
+        <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+            <i class="fas fa-chevron-left" id="toggle-icon"></i>
+        </button>
     </nav>
-    
-    <!-- Toggle Button - Outside sidebar on the right edge -->
-    <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
-        <i class="fas fa-chevron-left" id="toggle-icon"></i>
-    </button>
     @endauth
     
     <div class="@auth main-content @else full-content @endauth" id="main-content">
@@ -870,13 +862,6 @@
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
             
-            // Move toggle button with sidebar
-            if (sidebar.classList.contains('collapsed')) {
-                toggleBtn.style.left = '70px';
-            } else {
-                toggleBtn.style.left = '260px';
-            }
-            
             // Toggle icon direction
             const toggleIcon = document.getElementById('toggle-icon');
             if (sidebar.classList.contains('collapsed')) {
@@ -900,7 +885,6 @@
             if (localStorage.getItem('sidebar-collapsed') === 'true') {
                 sidebar.classList.add('collapsed');
                 mainContent.classList.add('expanded');
-                toggleBtn.style.left = '70px';
                 const toggleIcon = document.getElementById('toggle-icon');
                 if(toggleIcon) {
                     toggleIcon.classList.remove('fa-chevron-left');
@@ -909,29 +893,6 @@
             }
         });
 
-        @if(auth()->check() && auth()->user()->isAdmin())
-        // Polling for assistance requests
-        function checkAssistanceRequests() {
-            fetch('{{ route("admin.assistance.pending") }}')
-                .then(response => response.json())
-                .then(data => {
-                    const badge = document.getElementById('assistance-badge');
-                    if (badge) {
-                        if (data.count > 0) {
-                            badge.innerText = data.count;
-                            badge.style.display = 'inline-block';
-                        } else {
-                            badge.style.display = 'none';
-                        }
-                    }
-                })
-                .catch(error => console.error('Error fetching assistance requests:', error));
-        }
-
-        // Check immediately and then every 15 seconds
-        checkAssistanceRequests();
-        setInterval(checkAssistanceRequests, 15000);
-        @endif
     </script>
 
     <!-- ─── Global Custom Confirm Modal ─── -->

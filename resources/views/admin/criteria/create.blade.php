@@ -40,8 +40,11 @@
         
         <div class="form-group" style="display: flex; gap: 1rem;">
             <div style="flex: 1;">
-                <label for="weight">Weight (%)</label>
-                <input type="number" id="weight" name="weight" min="0" max="100" required>
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <label for="weight">Weight (%)</label>
+                    <span id="weightRemainingDisplay" class="text-muted" style="font-size: 0.8rem; font-weight: 600;">Max: 100%</span>
+                </div>
+                <input type="number" id="weight" name="weight" min="1" max="100" required>
             </div>
             <div style="flex: 1;">
                 <label for="max_points">Max Points</label>
@@ -58,4 +61,65 @@
             <button type="submit" class="btn btn-primary">Create Criteria</button>
             <a href="{{ $selectedEventId ? route('events.show', $selectedEventId) : route('criteria.index') }}" class="btn btn-secondary">Cancel</a>
         </div>
+    </form>
+</div>
+
+<script>
+    const eventWeights = @json($eventWeights);
+    const eventSelect = document.getElementById('event_id');
+    const weightInput = document.getElementById('weight');
+    const weightRemainingDisplay = document.getElementById('weightRemainingDisplay');
+    const selectedEventId = "{{ $selectedEventId }}";
+
+    function updateMaxWeight() {
+        let currentEventId = null;
+        
+        if (eventSelect) {
+            currentEventId = eventSelect.value;
+        } else if (selectedEventId) {
+            currentEventId = selectedEventId;
+        }
+
+        if (currentEventId && eventWeights[currentEventId] !== undefined) {
+            let maxWeight = eventWeights[currentEventId];
+            weightInput.max = maxWeight;
+            
+            if (maxWeight === 0) {
+                weightRemainingDisplay.innerHTML = `<span style="color: var(--color-danger);">0% left (Full)</span>`;
+                weightRemainingDisplay.title = "This event already has 100% total criteria weight.";
+                weightInput.disabled = true;
+                weightInput.value = "";
+                weightInput.placeholder = "0";
+            } else {
+                weightRemainingDisplay.innerHTML = `Available: <span style="color: var(--color-success);">${maxWeight}%</span>`;
+                weightInput.disabled = false;
+                weightInput.placeholder = `Max ${maxWeight}`;
+                if (parseFloat(weightInput.value) > maxWeight) {
+                    weightInput.value = maxWeight;
+                }
+            }
+        } else {
+            weightInput.max = 100;
+            weightRemainingDisplay.innerText = "Max: 100%";
+            weightInput.disabled = false;
+            weightInput.placeholder = "";
+        }
+    }
+
+    if (eventSelect) {
+        eventSelect.addEventListener('change', updateMaxWeight);
+    }
+    
+    // Validate on input
+    weightInput.addEventListener('input', function() {
+        const max = parseFloat(this.max);
+        const val = parseFloat(this.value);
+        if (val > max) {
+            this.value = max;
+        }
+    });
+
+    // Initial call
+    updateMaxWeight();
+</script>
 @endsection

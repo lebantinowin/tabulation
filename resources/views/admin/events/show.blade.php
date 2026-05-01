@@ -97,7 +97,15 @@
     </div>
 </div>
 
+<!-- Tabs Navigation -->
+<div class="event-tabs" style="margin-bottom: 1.5rem; display: flex; border-bottom: 2px solid var(--color-border); gap: 1rem;">
+    <button class="tab-btn active" onclick="switchTab('criteria', this)">Criteria</button>
+    <button class="tab-btn" onclick="switchTab('judges', this)">Judges</button>
+    <button class="tab-btn" onclick="switchTab('contestants', this)">Contestants</button>
+</div>
+
 <!-- Judges Section -->
+<div id="tab-judges" class="tab-pane" style="display: none;">
 <div class="card">
     <div class="page-header" style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: none;">
         <h2><i class="fas fa-gavel"></i> Judges</h2>
@@ -162,8 +170,10 @@
     <p style="color: var(--color-muted);">No judges assigned. <a href="{{ route('events.assignJudges', $event->id) }}">Assign now</a></p>
     @endif
 </div>
+</div>
 
 <!-- Criteria Section -->
+<div id="tab-criteria" class="tab-pane active" style="display: block;">
 <div class="card">
     <div class="page-header" style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: none;">
         <h2><i class="fas fa-list"></i> Criteria</h2>
@@ -210,52 +220,35 @@
     <p style="color: var(--color-muted);">No criteria defined for this event.</p>
     @endif
 </div>
+</div>
 
-<!-- Results Section -->
+<!-- Contestants Section -->
+<div id="tab-contestants" class="tab-pane" style="display: none;">
 <div class="card">
     <div class="page-header" style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: none;">
-        <h2><i class="fas fa-chart-bar"></i> Results</h2>
+        <h2><i class="fas fa-users"></i> Contestants</h2>
+        <a href="{{ route('contestants.create') }}?event_id={{ $event->id }}" class="btn-icon" style="background: #D4A574;" title="Add Contestant">
+            <i class="fas fa-user-plus"></i>
+        </a>
     </div>
     
     @php
     $contestants = $event->contestants;
-    $criteriaList = $event->criteria;
     @endphp
     
-    @if($contestants && $contestants->count() > 0 && $criteriaList && $criteriaList->count() > 0)
+    @if($contestants && $contestants->count() > 0)
     <table>
         <thead>
             <tr>
-                <th>#</th>
-                <th>Contestant</th>
-                @foreach($criteriaList as $criteria)
-                <th>{{ $criteria->name }} ({{ $criteria->weight }}%)</th>
-                @endforeach
-                <th>Total</th>
-                <th>Rank</th>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Number</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            @php
-            $rankings = [];
-            foreach($contestants as $contestant) {
-                $total = 0;
-                foreach($criteriaList as $criteria) {
-                    $score = $contestant->scores()->where('criteria_id', $criteria->id)->avg('score') ?? 0;
-                    $total += $score * ($criteria->weight / 100);
-                }
-                $rankings[$contestant->id] = $total;
-            }
-            arsort($rankings);
-            $rank = 1;
-            @endphp
-            
-            @foreach($rankings as $contestantId => $totalScore)
-            @php
-            $contestant = $contestants->find($contestantId);
-            @endphp
+            @foreach($contestants as $contestant)
             <tr>
-                <td>{{ $contestant->number }}</td>
                 <td>
                     @php
                     $imagePath = $contestant->image;
@@ -263,16 +256,13 @@
                     $imageFound = false;
                     
                     $possiblePaths = [];
-                    
                     if ($imagePath) {
                         if (str_contains($imagePath, 'storage/')) {
                             $possiblePaths[] = $imagePath;
-                        }
-                        elseif (str_contains($imagePath, 'contestants/')) {
+                        } elseif (str_contains($imagePath, 'contestants/')) {
                             $possiblePaths[] = 'storage/' . $imagePath;
                             $possiblePaths[] = $imagePath;
-                        }
-                        else {
+                        } else {
                             $possiblePaths[] = 'storage/contestants/' . $imagePath;
                             $possiblePaths[] = 'storage/' . $imagePath;
                             $possiblePaths[] = 'contestants/' . $imagePath;
@@ -288,40 +278,82 @@
                         }
                     }
                     @endphp
+                    
                     @if($imageFound && $fullPath)
-                    <img src="{{ asset($fullPath) }}" alt="{{ $contestant->name }}" class="profile-image-sm" style="margin-right: 10px;">
-                    @endif
-                    {{ $contestant->name }}
-                </td>
-                @foreach($criteriaList as $criteria)
-                @php
-                $score = $contestant->scores()->where('criteria_id', $criteria->id)->avg('score') ?? 0;
-                @endphp
-                <td>{{ number_format($score, 1) }}</td>
-                @endforeach
-                <td><strong>{{ number_format($totalScore, 2) }}</strong></td>
-                <td>
-                    @if($rank == 1)
-                    <span class="badge badge-success">🥇 1st</span>
-                    @elseif($rank == 2)
-                    <span class="badge badge-warning">🥈 2nd</span>
-                    @elseif($rank == 3)
-                    <span class="badge" style="background: #CD7F32; color: white;">🥉 3rd</span>
+                        <img src="{{ asset($fullPath) }}" alt="{{ $contestant->name }}" class="profile-image-sm">
                     @else
-                    <span class="badge">{{ $rank }}th</span>
+                        <div class="user-avatar" style="width: 40px; height: 40px; font-size: 1rem;">
+                            {{ strtoupper(substr($contestant->name, 0, 1)) }}
+                        </div>
                     @endif
+                </td>
+                <td>{{ $contestant->name }}</td>
+                <td>{{ $contestant->number }}</td>
+                <td>
+                    <div class="actions">
+                        <a href="{{ route('contestants.show', $contestant->id) }}" class="btn-icon btn-icon-view" style="background: #040D12;" title="View">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{{ route('contestants.edit', $contestant->id) }}" class="btn-icon btn-icon-edit" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form action="{{ route('contestants.destroy', $contestant->id) }}" method="POST" style="display: inline;" id="deleteContestantForm{{ $contestant->id }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" class="btn-icon btn-icon-delete" onclick="confirmForm(document.getElementById('deleteContestantForm{{ $contestant->id }}'), 'This contestant will be removed from the event.', {title: 'Delete Contestant?'})" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
-            @php $rank++; @endphp
             @endforeach
         </tbody>
     </table>
     @else
-    <p style="color: var(--color-muted);">No results available yet. Add criteria and scores to see results.</p>
+    <p style="color: var(--color-muted);">No contestants added to this event yet.</p>
     @endif
 </div>
+</div>
+
+<script>
+function switchTab(tabId, btn) {
+    // Hide all tab panes
+    document.querySelectorAll('.tab-pane').forEach(el => el.style.display = 'none');
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    // Show target tab pane
+    document.getElementById('tab-' + tabId).style.display = 'block';
+    
+    // Add active class to clicked button
+    btn.classList.add('active');
+}
+</script>
 
 <style>
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+    color: var(--color-text);
+}
+
+.tab-btn.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
 .btn-icon {
     display: inline-flex;
     align-items: center;

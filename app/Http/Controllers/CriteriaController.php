@@ -15,12 +15,18 @@ class CriteriaController extends Controller
         return view('admin.criteria.index', compact('criterias'));
     }
 
-    // Show the form for creating a new resource.
     public function create()
     {
         $events = Event::whereIn('status', ['upcoming', 'ongoing'])->get();
         $selectedEventId = request()->get('event_id');
-        return view('admin.criteria.create', compact('events', 'selectedEventId'));
+        
+        $eventWeights = [];
+        foreach ($events as $event) {
+            $currentWeight = Criteria::where('event_id', $event->id)->sum('weight');
+            $eventWeights[$event->id] = max(0, 100 - $currentWeight);
+        }
+
+        return view('admin.criteria.create', compact('events', 'selectedEventId', 'eventWeights'));
     }
 
     // Store a newly created resource in storage.
