@@ -159,7 +159,11 @@ class JudgeController extends Controller
 
         AuditLog::log('judge_updated', 'Updated judge: ' . $judge->name);
 
-        return redirect()->route('judges.index')->with('success', 'Judge updated successfully.');
+        $redirect = $request->event_id
+            ? route('judges.index', ['event_id' => $request->event_id])
+            : route('judges.index');
+
+        return redirect($redirect)->with('success', 'Judge updated successfully.');
     }
 
     public function destroy(User $judge)
@@ -173,7 +177,11 @@ class JudgeController extends Controller
 
         AuditLog::log('judge_deleted', 'Deleted judge: ' . $judgeName);
 
-        return redirect()->route('judges.index')->with('success', 'Judge deleted successfully.');
+        $redirect = $judge->event_id
+            ? route('judges.index', ['event_id' => $judge->event_id])
+            : route('judges.index');
+
+        return redirect($redirect)->with('success', 'Judge deleted successfully.');
     }
 
     public function toggleActive(Request $request, User $judge)

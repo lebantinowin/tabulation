@@ -115,7 +115,7 @@
         <div style="position: relative; width: 100%;">
             @if($contestant->image_url)
                 <img src="{{ $contestant->image_url }}" alt="{{ $contestant->name }}"
-                     style="width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; max-height: 340px;">
+                     style="width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block;">
             @else
                 <div class="user-avatar" style="width: 100%; height: 260px; font-size: 5rem;
                             display: flex; align-items: center; justify-content: center;

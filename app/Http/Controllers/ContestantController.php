@@ -70,7 +70,7 @@ class ContestantController extends Controller
 
         Contestant::create($data);
 
-        return redirect()->route('contestants.index')
+        return redirect()->route('contestants.index', ['event_id' => $request->event_id])
             ->with('success', 'Contestant created successfully.');
     }
 
@@ -111,7 +111,7 @@ class ContestantController extends Controller
 
         $contestant->update($data);
 
-        return redirect()->route('contestants.index')
+        return redirect()->route('contestants.index', ['event_id' => $request->event_id])
             ->with('success', 'Contestant updated successfully.');
     }
 
@@ -125,7 +125,7 @@ class ContestantController extends Controller
         
         $contestant->delete();
 
-        return redirect()->route('contestants.index')
+        return redirect()->route('contestants.index', ['event_id' => $contestant->event_id])
             ->with('success', 'Contestant deleted successfully.');
     }
 }
