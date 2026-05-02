@@ -42,6 +42,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Event Management
     Route::post('/events/{event}/archive', [App\Http\Controllers\EventController::class, 'archive'])->name('events.archive');
     Route::post('/events/{event}/unarchive', [App\Http\Controllers\EventController::class, 'unarchive'])->name('events.unarchive');
+    Route::post('/events/{event}/reset-scores', [App\Http\Controllers\EventController::class, 'resetScores'])->name('events.resetScores');
     Route::resource('events', EventController::class);
 
     // Criteria routes
@@ -83,6 +84,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // PDF Export / Print
     Route::get('/tabulation/print', [TabulationController::class, 'print'])->name('tabulation.print');
     Route::get('/tabulation/print-category/{criteriaId}', [TabulationController::class, 'printCategory'])->name('tabulation.print-category');
+    Route::get('/tabulation/print-judge/{eventId}/{judgeId}', [TabulationController::class, 'printJudge'])->name('tabulation.print-judge');
 
     // Audit Logs
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('auditLogs.index');

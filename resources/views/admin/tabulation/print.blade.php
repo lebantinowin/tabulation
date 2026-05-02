@@ -16,32 +16,30 @@
 
         /* Header */
         .page-header {
-            background: #040D12;
-            color: #ffffff;
-            padding: 16px 24px;
+            color: #111;
+            padding: 12px 24px 8px;
             text-align: center;
+            border-bottom: 2px solid #040D12;
             margin-bottom: 0;
         }
 
         .page-header h1 {
-            font-size: 16pt;
+            font-size: 14pt;
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .page-header p {
-            font-size: 9pt;
-            opacity: 0.8;
+            font-size: 8.5pt;
+            color: #444;
             margin: 2px 0;
         }
 
         .page-header .sub {
-            font-size: 9pt;
-            background: rgba(255,255,255,0.1);
+            font-size: 7.5pt;
+            color: #777;
             display: inline-block;
-            padding: 3px 12px;
-            border-radius: 12px;
-            margin-top: 8px;
+            margin-top: 4px;
         }
 
         /* Table */
@@ -170,6 +168,13 @@
     @if($event->date)
         <p>Event Date: {{ \Carbon\Carbon::parse($event->date)->format('F d, Y') }}</p>
     @endif
+    @if(isset($eventJudges) && $eventJudges->count() > 0)
+        <p style="margin-top: 4px; font-size: 8pt;">
+            @foreach($eventJudges as $j)
+                <span style="margin-right: 12px;">{{ $j->judge_number ? 'Judge ' . $j->judge_number : 'Judge' }}: {{ $j->name }}</span>
+            @endforeach
+        </p>
+    @endif
     <div class="sub">Generated: {{ now()->format('F d, Y h:i A') }}</div>
 </div>
 
@@ -183,8 +188,7 @@
                 @foreach($criterias as $criteria)
                     <th class="center">{{ $criteria->name }}<br><span style="font-weight:400; font-size:8pt;">({{ $criteria->weight }}%)</span></th>
                 @endforeach
-                <th class="right">Total Score</th>
-                <th class="right">Average</th>
+                <th class="right">Overall Weighted Score</th>
             </tr>
         </thead>
         <tbody>
@@ -201,7 +205,7 @@
                 <td class="center">
                     <span class="rank-badge">{{ $result['rank'] ?? '–' }}</span>
                 </td>
-                <td style="color:#666; font-size:9pt;">{{ $result['contestant']->number ?? '—' }}</td>
+                <td style="color:#666; font-size:9pt;">#{{ $result['contestant']->number ?? '—' }}</td>
                 <td>
                     <div class="contestant-name">{{ $result['contestant']->name }}</div>
                     @if($result['message'])
@@ -209,16 +213,13 @@
                     @endif
                 </td>
                 @foreach($criterias as $criteria)
-                    <td style="text-align:center;">{{ number_format($result['criteria_scores'][$criteria->id]['average'] ?? 0, 2) }}</td>
+                    <td style="text-align:center;">{{ number_format(($result['criteria_scores'][$criteria->id]['average'] ?? 0) * ($criteria->weight / 100), 2) }}%</td>
                 @endforeach
                 <td style="text-align:right;">
-                    <span class="score-total">{{ number_format($result['total_score'], 4) }}</span>
+                    <span class="score-total">{{ number_format($result['total_score'], 2) }}%</span>
                     @if($result['is_overridden'])
                         <br><span class="overridden-badge">&#9733; Overridden</span>
                     @endif
-                </td>
-                <td style="text-align:right; color:#555;">
-                    {{ number_format($result['average_score'], 4) }}
                 </td>
             </tr>
             @endforeach

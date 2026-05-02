@@ -27,7 +27,7 @@
         </label>
         <select id="criteriaFilter" onchange="filterByCriteria()"
                 style="flex: 1; min-width: 200px; max-width: 400px; font-weight: bold; font-size: 1.05rem;">
-            <option value="" style="font-weight: normal;">All Criteria</option>
+            <option value="" style="font-weight: normal;">Choose Criteria</option>
             @foreach($criterias as $criteria)
                 <option value="{{ $criteria->id }}" style="font-weight: bold;">{{ $criteria->name }} ({{ $criteria->weight }}%)</option>
             @endforeach
@@ -49,15 +49,56 @@
         <tbody>
             @if($criterias->isEmpty() || $contestants->isEmpty())
                 <tr>
-                    <td colspan="6" class="text-center text-muted">No criterias or contestants available for this event.</td>
+                    <td colspan="5" class="text-center text-muted">No criterias or contestants available for this event.</td>
                 </tr>
             @else
+                <tr id="instructionRow">
+                    <td colspan="5" style="padding: 3rem 1rem;">
+                        <div style="max-width: 900px; margin: 0 auto; background: var(--color-white); padding: 2.5rem; border-radius: 16px; border: 1px dashed var(--color-border); box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                            <h4 style="text-align: center; margin-bottom: 2.5rem; font-weight: 700; color: var(--color-primary); font-size: 1.5rem;">
+                                <i class="fas fa-magic" style="color: #D4A574;"></i> How to Score
+                            </h4>
+                            <div class="steps-container">
+                                <!-- Connector Line -->
+                                <div class="steps-line"></div>
+                                
+                                <!-- Step 1 -->
+                                <div class="step-box">
+                                    <div class="step-circle">1</div>
+                                    <h5 class="step-title">Choose Criteria</h5>
+                                    <p class="step-desc">Select a criteria from the dropdown above.</p>
+                                </div>
+
+                                <!-- Step 2 -->
+                                <div class="step-box">
+                                    <div class="step-circle">2</div>
+                                    <h5 class="step-title">Score Contestant</h5>
+                                    <p class="step-desc">Click the <span style="background: var(--color-primary); color: white; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem;"><i class="fas fa-plus"></i></span> button.</p>
+                                </div>
+
+                                <!-- Step 3 -->
+                                <div class="step-box">
+                                    <div class="step-circle">3</div>
+                                    <h5 class="step-title">Submit</h5>
+                                    <p class="step-desc">Enter your score and click Submit.</p>
+                                </div>
+
+                                <!-- Step 4 -->
+                                <div class="step-box">
+                                    <div class="step-circle">4</div>
+                                    <h5 class="step-title">Edit Later</h5>
+                                    <p class="step-desc">Update scores anytime using <i class="fas fa-edit" style="color: var(--color-warning);"></i>.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
                 @foreach($criterias as $criteria)
                     @foreach($contestants as $contestant)
                         @php
                             $score = $scores->where('contestant_id', $contestant->id)->where('criteria_id', $criteria->id)->first();
                         @endphp
-                        <tr class="score-row" data-criteria="{{ $criteria->id }}">
+                        <tr class="score-row" data-criteria="{{ $criteria->id }}" style="display: none;">
                             <td>{{ $contestant->number ?? '—' }}</td>
                             <td>
                                 @if($contestant->image_url)
@@ -73,7 +114,11 @@
                             <td><strong>{{ $contestant->name }}</strong></td>
                             <td>
                                 @if($score)
-                                    <span class="badge badge-success">{{ $score->score }}</span>
+                                    @if((float)$score->score == 0.00)
+                                        <span class="badge badge-danger" title="Score is Zero">{{ number_format($score->score, 2) }}%</span>
+                                    @else
+                                        <span class="badge badge-success">{{ number_format($score->score, 2) }}%</span>
+                                    @endif
                                 @else
                                     <span class="badge badge-secondary" style="opacity: 0.5;">N/A</span>
                                 @endif
@@ -91,7 +136,8 @@
                                                     '{{ addslashes($criteria->name ?? '') }}',
                                                     {{ $criteria->max_points ?? 100 }},
                                                     {{ $score->score }},
-                                                    '{{ addslashes($score->remarks ?? '') }}'
+                                                    '{{ addslashes($score->remarks ?? '') }}',
+                                                    {{ $contestant->id }}
                                                 )">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -140,8 +186,8 @@
                 <form method="POST" action="{{ route('scores.store') }}" id="submitScoreForm">
                     @csrf
 
-                    {{-- Criteria first --}}
-                    <div class="form-group">
+                    {{-- Criteria first (Hidden as per request) --}}
+                    <div class="form-group" style="display: none;">
                         <label for="sm_criteria_id">Criteria</label>
                         <select id="sm_criteria_id" name="criteria_id" required onchange="updateScoreMax(this)">
                             <option value="">Select Criteria</option>
@@ -153,8 +199,8 @@
                         </select>
                     </div>
 
-                    {{-- Contestant --}}
-                    <div class="form-group">
+                    {{-- Contestant (Hidden as per request) --}}
+                    <div class="form-group" style="display: none;">
                         <label for="sm_contestant_id">Contestant</label>
                         <select id="sm_contestant_id" name="contestant_id" required onchange="updateContestantPreview(this)">
                             <option value="">Select Contestant</option>
@@ -250,10 +296,51 @@
 // ─── Criteria filter ───
 function filterByCriteria() {
     const val = document.getElementById('criteriaFilter').value;
+    const instructionRow = document.getElementById('instructionRow');
+    if (instructionRow) {
+        instructionRow.style.display = val ? 'none' : '';
+    }
     document.querySelectorAll('.score-row').forEach(function(row) {
-        row.style.display = (!val || row.dataset.criteria === val) ? '' : 'none';
+        row.style.display = (val && row.dataset.criteria === val) ? '' : 'none';
     });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Restore selected criteria
+    const savedCriteria = sessionStorage.getItem('judge_selected_criteria');
+    if (savedCriteria) {
+        document.getElementById('criteriaFilter').value = savedCriteria;
+    }
+    filterByCriteria();
+
+    // Restore scroll position
+    const savedScroll = sessionStorage.getItem('judge_scroll_pos');
+    if (savedScroll) {
+        // Need a slight timeout to ensure rendering is complete before scroll
+        setTimeout(() => window.scrollTo(0, parseInt(savedScroll)), 50);
+        sessionStorage.removeItem('judge_scroll_pos'); // clear after restoring
+    }
+
+    // Update saved criteria when changed
+    document.getElementById('criteriaFilter').addEventListener('change', function() {
+        sessionStorage.setItem('judge_selected_criteria', this.value);
+    });
+
+    // Save scroll position when any form is submitted
+    const submitForm = document.getElementById('submitScoreForm');
+    if (submitForm) {
+        submitForm.addEventListener('submit', function() {
+            sessionStorage.setItem('judge_scroll_pos', window.scrollY);
+        });
+    }
+
+    const editForm = document.getElementById('editScoreForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function() {
+            sessionStorage.setItem('judge_scroll_pos', window.scrollY);
+        });
+    }
+});
 
 // ─── Submit Score Modal ───
 function openScoreModal(contestantId = null, criteriaId = null) {
@@ -324,14 +411,14 @@ function updateContestantPreview(sel) {
 }
 
 // ─── Edit Score Modal ───
-function openEditScoreModal(id, name, img, number, criteriaId, criteriaName, maxPoints, score, remarks) {
+function openEditScoreModal(id, name, img, number, criteriaId, criteriaName, maxPoints, score, remarks, contestantId) {
     const form = document.getElementById('editScoreForm');
-    form.action = '/tabulation/public/scores/' + id;
+    form.action = '{{ url("scores") }}/' + id;
 
     document.getElementById('editModalContestantName').innerText = name;
     document.getElementById('editModalCriteriaName').value = criteriaName + ' (max: ' + maxPoints + ')';
     document.getElementById('editModalCriteriaId').value = criteriaId;
-    document.getElementById('editModalContestantId').value = 0; // filled via score record
+    document.getElementById('editModalContestantId').value = contestantId;
     document.getElementById('editModalMaxLabel').innerText = maxPoints;
     document.getElementById('editModalScore').max = maxPoints;
     document.getElementById('editModalScore').value = score;
@@ -392,6 +479,72 @@ document.querySelectorAll('.modal').forEach(function(m) {
     transform: scale(2.5);
     z-index: 10;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Progressive Instructions */
+.steps-container {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start; 
+    position: relative;
+    gap: 1.5rem;
+}
+.steps-line {
+    position: absolute; 
+    top: 25px; 
+    left: 10%; 
+    right: 10%; 
+    height: 3px; 
+    background: var(--color-border); 
+    z-index: 1;
+}
+.step-box {
+    flex: 1; 
+    text-align: center; 
+    position: relative; 
+    z-index: 2;
+}
+.step-circle {
+    width: 50px; 
+    height: 50px; 
+    background: var(--color-primary); 
+    color: white; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin: 0 auto 1rem; 
+    font-size: 1.25rem; 
+    font-weight: bold; 
+    border: 4px solid var(--color-white);
+    box-shadow: 0 0 0 1px var(--color-border);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.step-box:hover .step-circle {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px var(--color-primary);
+}
+.step-title {
+    margin-bottom: 0.5rem; 
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+.step-desc {
+    font-size: 0.85rem; 
+    color: var(--color-muted); 
+    margin: 0;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .steps-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+    .steps-line {
+        display: none;
+    }
 }
 </style>
 @endsection

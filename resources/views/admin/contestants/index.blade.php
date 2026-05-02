@@ -5,7 +5,7 @@
 @section('content')
 <div class="page-header">
     <h1>Contestants Management</h1>
-    <a href="{{ route('contestants.create') }}" class="btn btn-primary" title="Add New Contestant">
+    <a href="{{ route('contestants.create', $selectedEventId ? ['event_id' => $selectedEventId] : []) }}" class="btn btn-primary" title="Add New Contestant">
         <i class="fas fa-user-plus"></i> Add Contestant
     </a>
 </div>
@@ -13,6 +13,23 @@
 @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
+
+<div class="card" style="padding: 1rem 1.5rem; margin-bottom: 1rem;">
+    <form method="GET" action="{{ route('contestants.index') }}" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <label style="font-weight: 600; white-space: nowrap;"><i class="fas fa-calendar-alt" style="margin-right: 6px;"></i> Filter by Event:</label>
+        <select name="event_id" onchange="this.form.submit()" style="flex: 1; min-width: 220px; max-width: 400px;">
+            <option value="">— All Events —</option>
+            @foreach($events as $event)
+                <option value="{{ $event->id }}" {{ $selectedEventId == $event->id ? 'selected' : '' }}>
+                    {{ $event->name }} ({{ \Carbon\Carbon::parse($event->date)->format('M d, Y') }})
+                </option>
+            @endforeach
+        </select>
+        @if($selectedEventId)
+            <a href="{{ route('contestants.index') }}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">Clear</a>
+        @endif
+    </form>
+</div>
 
 <table>
     <thead>
@@ -95,7 +112,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="5" class="text-center">No contestants found.</td>
+            <td colspan="5" class="text-center">No contestants found{{ $selectedEventId ? ' for this event' : '' }}.</td>
         </tr>
         @endforelse
     </tbody>

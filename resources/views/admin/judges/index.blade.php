@@ -5,7 +5,7 @@
 @section('content')
 <div class="page-header">
     <h1>Judges Management</h1>
-    <a href="{{ route('judges.create') }}" class="btn btn-primary" title="Add New Judge">
+    <a href="{{ route('judges.create', $selectedEventId ? ['event_id' => $selectedEventId] : []) }}" class="btn btn-primary" title="Add New Judge">
         <i class="fas fa-plus"></i> Add Judge
     </a>
 </div>
@@ -14,12 +14,30 @@
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
+<div class="card" style="padding: 1rem 1.5rem; margin-bottom: 1rem;">
+    <form method="GET" action="{{ route('judges.index') }}" style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <label style="font-weight: 600; white-space: nowrap;"><i class="fas fa-calendar-alt" style="margin-right: 6px;"></i> Filter by Event:</label>
+        <select name="event_id" onchange="this.form.submit()" style="flex: 1; min-width: 220px; max-width: 400px;">
+            <option value="">— All Events —</option>
+            @foreach($events as $event)
+                <option value="{{ $event->id }}" {{ $selectedEventId == $event->id ? 'selected' : '' }}>
+                    {{ $event->name }} ({{ \Carbon\Carbon::parse($event->date)->format('M d, Y') }})
+                </option>
+            @endforeach
+        </select>
+        @if($selectedEventId)
+            <a href="{{ route('judges.index') }}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">Clear</a>
+        @endif
+    </form>
+</div>
+
 <table>
     <thead>
         <tr>
             <th>Photo</th>
             <th>Name</th>
-            <th>Email</th>
+            <th style="text-align: center;">Judge #</th>
+            <th>Event</th>
             <th>Status</th>
             <th>Actions</th>
         </tr>
@@ -77,8 +95,27 @@
                     </div>
                 @endif
             </td>
-            <td>{{ $judge->name }}</td>
-            <td>{{ $judge->email }}</td>
+            <td>
+                {{ $judge->name }}
+                @if($judge->judge_number)
+                    <br><small style="color: var(--color-muted);">Judge {{ $judge->judge_number }}</small>
+                @endif
+            </td>
+            <td style="text-align: center;">
+                @if($judge->judge_number)
+                    <span class="badge badge-info" style="background: var(--color-btn); color: #fff; font-size: 0.85rem; padding: 0.3rem 0.6rem;">J{{ $judge->judge_number }}</span>
+                @else
+                    <span style="color: #ccc;">—</span>
+                @endif
+            </td>
+            <td>
+                @php $judgeEvent = \App\Models\Event::find($judge->event_id); @endphp
+                @if($judgeEvent)
+                    <span class="badge badge-info" style="font-size: 0.8rem;">{{ $judgeEvent->name }}</span>
+                @else
+                    <span style="color: #ccc;">—</span>
+                @endif
+            </td>
             <td>
                 <span class="badge {{ $judge->is_active ? 'badge-success' : 'badge-secondary' }}">
                     {{ $judge->is_active ? 'Active' : 'Inactive' }}
@@ -113,7 +150,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="5" class="text-center">No judges found.</td>
+            <td colspan="6" class="text-center">No judges found{{ $selectedEventId ? ' for this event' : '' }}.</td>
         </tr>
         @endforelse
     </tbody>

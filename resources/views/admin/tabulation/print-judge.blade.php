@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Results – {{ $criteria->name }} | {{ $event->name }}</title>
+    <title>Judge Scores – {{ $judge->name }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -11,7 +11,7 @@
             font-size: 9pt;
             color: #111;
             background: #ffffff;
-            margin-bottom: 60px;
+            margin-bottom: 60px; /* space for footer */
         }
 
         /* Header */
@@ -35,18 +35,7 @@
             margin: 2px 0;
         }
 
-        .criteria-badge {
-            display: inline-block;
-            background: #f0f0f0;
-            border: 1px solid #ccc;
-            padding: 2px 10px;
-            border-radius: 8px;
-            font-size: 8.5pt;
-            font-weight: bold;
-            margin-top: 4px;
-        }
-
-        .sub {
+        .page-header .sub {
             font-size: 7.5pt;
             color: #777;
             display: inline-block;
@@ -66,8 +55,8 @@
         thead th {
             background: #040D12;
             color: #ffffff;
-            padding: 8px 6px;
-            font-size: 8pt;
+            padding: 6px 4px;
+            font-size: 7pt;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             text-align: left;
@@ -77,9 +66,9 @@
         thead th.right  { text-align: right; }
 
         tbody td {
-            padding: 8px 6px;
+            padding: 6px 4px;
             border-bottom: 1px solid #e5e7eb;
-            font-size: 9pt;
+            font-size: 8pt;
             vertical-align: middle;
         }
 
@@ -107,13 +96,13 @@
         .rank-3 .rank-badge { background: #a0552a; }
         .rank-other .rank-badge { background: #4A5568; }
 
-        .contestant-name { font-weight: bold; font-size: 9.5pt; }
-        .score-value     { font-weight: bold; font-size: 10pt; color: #040D12; }
+        .contestant-name { font-weight: bold; font-size: 8.5pt; }
+        .score-total { font-weight: bold; font-size: 9pt; color: #040D12; }
 
         /* Signatures */
         .signatures-wrapper {
             padding: 24px;
-            margin-top: 20px;
+            margin-top: 40px;
         }
         
         .signatures-title {
@@ -170,56 +159,31 @@
 
 <div class="page-header">
     <h1>{{ $event->name }}</h1>
-    <p>Category Results</p>
-    <div class="criteria-badge">{{ $criteria->name }} &nbsp;·&nbsp; Weight: {{ $criteria->weight }}%</div><br>
+    <p>Individual Judge Scores</p>
+    <p><strong>{{ $judge->judge_number ? 'Judge ' . $judge->judge_number : 'Judge' }}: {{ $judge->name }}</strong></p>
     @if($event->date)
         <p>Event Date: {{ \Carbon\Carbon::parse($event->date)->format('F d, Y') }}</p>
-    @endif
-    @if(isset($eventJudges) && $eventJudges->count() > 0)
-        <p style="margin-top: 4px; font-size: 8pt;">
-            @foreach($eventJudges as $j)
-                <span style="margin-right: 12px;">{{ $j->judge_number ? 'Judge ' . $j->judge_number : 'Judge' }}: {{ $j->name }}</span>
-            @endforeach
-        </p>
     @endif
     <div class="sub">Generated: {{ now()->format('F d, Y h:i A') }}</div>
 </div>
 
 <div class="table-wrapper">
-    @php
-        $sortedResults = [];
-        foreach($results as $result) {
-            $avg = $result['criteria_scores'][$criteria->id]['average'] ?? 0;
-            $scores = $result['criteria_scores'][$criteria->id]['scores'] ?? collect();
-            $sortedResults[] = [
-                'contestant' => $result['contestant'],
-                'average'    => $avg,
-                'weighted'   => $avg * ($criteria->weight / 100),
-                'scores'     => $scores,
-            ];
-        }
-        usort($sortedResults, fn($a, $b) => $b['weighted'] <=> $a['weighted']);
-    @endphp
-
     <table>
         <thead>
             <tr>
                 <th class="center" style="width: 50px;">Rank</th>
                 <th style="width: 60px;">No.</th>
                 <th>Contestant Name</th>
-                @if(isset($eventJudges) && $eventJudges->count() > 0)
-                    @foreach($eventJudges as $j)
-                        <th class="center">{{ $j->judge_number ? 'Judge ' . $j->judge_number : $j->name }}</th>
-                    @endforeach
-                @endif
+                @foreach($criterias as $criteria)
+                    <th class="center">{{ $criteria->name }}<br><span style="font-weight:400; font-size:8pt;">({{ $criteria->weight }}%)</span></th>
+                @endforeach
                 <th class="right">Weighted Score</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($sortedResults as $index => $row)
+            @foreach($results as $result)
             @php
-                $rank = $index + 1;
-                $rankClass = match($rank) {
+                $rankClass = match($result['rank']) {
                     1 => 'rank-gold rank-1',
                     2 => 'rank-silver rank-2',
                     3 => 'rank-bronze rank-3',
@@ -227,28 +191,18 @@
                 };
             @endphp
             <tr class="{{ $rankClass }}">
-                <td style="text-align:center;">
-                    <span class="rank-badge">{{ $rank }}</span>
+                <td class="center">
+                    <span class="rank-badge">{{ $result['rank'] ?? '–' }}</span>
                 </td>
-                <td style="color:#666; font-size:9pt;">#{{ $row['contestant']->number ?? '—' }}</td>
+                <td style="color:#666; font-size:9pt;">{{ $result['contestant']->number ?? '—' }}</td>
                 <td>
-                    <div class="contestant-name">{{ $row['contestant']->name }}</div>
+                    <div class="contestant-name">{{ $result['contestant']->name }}</div>
                 </td>
-                @if(isset($eventJudges) && $eventJudges->count() > 0)
-                    @foreach($eventJudges as $j)
-                        @php $js = $row['scores']->where('judge_id', $j->id)->first(); @endphp
-                        <td style="text-align:center;">
-                            @if($js)
-                                <div>{{ number_format($js->score, 2) }}</div>
-                                <div style="color:#888; font-size:7pt; margin-top:2px;">{{ number_format($js->score * ($criteria->weight / 100), 2) }}%</div>
-                            @else
-                                <span style="color:#ccc;">—</span>
-                            @endif
-                        </td>
-                    @endforeach
-                @endif
+                @foreach($criterias as $criteria)
+                    <td style="text-align:center;">{{ number_format(($result['criteria_scores'][$criteria->id]['average'] ?? 0) * ($criteria->weight / 100), 2) }}%</td>
+                @endforeach
                 <td style="text-align:right;">
-                    <span class="score-value">{{ number_format($row['weighted'], 2) }}%</span>
+                    <span class="score-total">{{ number_format($result['total_score'], 2) }}%</span>
                 </td>
             </tr>
             @endforeach
@@ -256,43 +210,26 @@
     </table>
 </div>
 
-@if((isset($judges) && count($judges) > 0) || !empty($adminName))
 <div class="signatures-wrapper">
     <div class="signatures-title">CERTIFIED BY:</div>
     <table class="signature-grid">
-        @php
-            $signatories = [];
-            if (isset($judges) && is_array($judges)) {
-                foreach ($judges as $judge) {
-                    $signatories[] = ['name' => $judge, 'role' => 'Judge'];
-                }
-            }
-            if (!empty($adminName)) {
-                $signatories[] = ['name' => $adminName, 'role' => 'Administrator'];
-            }
-            $chunks = array_chunk($signatories, 3);
-        @endphp
-
-        @foreach($chunks as $row)
-            <tr>
-                @foreach($row as $person)
-                    <td class="signature-box" style="padding-top: 50px;">
-                        <div class="signature-line"></div>
-                        <div class="signature-name">{{ $person['name'] }}</div>
-                        <div class="signature-role">{{ $person['role'] }}</div>
-                    </td>
-                @endforeach
-                @for($i = count($row); $i < 3; $i++)
-                    <td></td>
-                @endfor
-            </tr>
-        @endforeach
+        <tr>
+            <td class="signature-box" style="padding-top: 50px;">
+                <div class="signature-line"></div>
+                <div class="signature-name">{{ $judge->name }}</div>
+                <div class="signature-role">Judge</div>
+            </td>
+            <td class="signature-box" style="padding-top: 50px;">
+                <div class="signature-line"></div>
+                <div class="signature-name">{{ $adminName }}</div>
+                <div class="signature-role">Administrator</div>
+            </td>
+        </tr>
     </table>
 </div>
-@endif
 
 <div class="page-footer">
-    This document is auto-generated by the Tabulation System. &nbsp;|&nbsp; Category: {{ $criteria->name }}
+    This document is auto-generated by the Tabulation System. &nbsp;|&nbsp; Powered by ECCENTRI, Inc.
 </div>
 
 </body>

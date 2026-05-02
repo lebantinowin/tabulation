@@ -26,17 +26,28 @@ class ContestantController extends Controller
     }
 
     // Display a listing of the resource.
-    public function index()
+    public function index(Request $request)
     {
-        $contestants = Contestant::with('event')->get();
-        return view('admin.contestants.index', compact('contestants'));
+        $events = Event::orderBy('date', 'desc')->get();
+        $selectedEventId = $request->get('event_id');
+
+        $query = Contestant::with('event');
+        
+        if ($selectedEventId) {
+            $query->where('event_id', $selectedEventId);
+        }
+        
+        $contestants = $query->orderBy('number')->get();
+
+        return view('admin.contestants.index', compact('contestants', 'events', 'selectedEventId'));
     }
 
     // Show the form for creating a new resource.
-    public function create()
+    public function create(Request $request)
     {
         $events = Event::where('is_archived', false)->get();
-        return view('admin.contestants.create', compact('events'));
+        $defaultEventId = $request->get('event_id');
+        return view('admin.contestants.create', compact('events', 'defaultEventId'));
     }
 
     // Store a newly created resource in storage.

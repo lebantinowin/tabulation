@@ -8,6 +8,7 @@ use App\Models\Contestant;
 use App\Models\Score;
 use App\Models\Criteria;
 use App\Models\AuditLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -16,7 +17,7 @@ class TabulationController extends Controller
     /**
      * Helper to compute and sort results efficiently.
      */
-    private function computeResults(Event $event, $singleCriteriaId = null)
+    private function computeResults(Event $event, $singleCriteriaId = null, $specificJudgeId = null)
     {
         $contestants = Contestant::where('event_id', $event->id)->get();
         
@@ -27,9 +28,17 @@ class TabulationController extends Controller
         $criterias = $criteriasQuery->get();
         
         // Eager load all scores for this event to avoid N+1 queries
-        $allScores = Score::whereHas('contestant', function ($q) use ($event) {
+        $allScoresQuery = Score::whereHas('contestant', function ($q) use ($event) {
             $q->where('event_id', $event->id);
-        })->get();
+        });
+
+        if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isJudge()) {
+            $allScoresQuery->where('judge_id', \Illuminate\Support\Facades\Auth::id());
+        } elseif ($specificJudgeId) {
+            $allScoresQuery->where('judge_id', $specificJudgeId);
+        }
+
+        $allScores = $allScoresQuery->get();
 
         // Get tabulation overrides
         $overrides = Tabulation::whereIn('contestant_id', $contestants->pluck('id'))->get()->keyBy('contestant_id');
@@ -132,7 +141,11 @@ class TabulationController extends Controller
         // Merge: scored first, then unscored
         $results = array_values(array_merge($scored, $unscored));
 
-        return [$results, $criterias];
+        // Get all judges who have scored in this event, ordered by their assigned number
+        $judgeIds = $allScores->pluck('judge_id')->unique();
+        $judges = User::whereIn('id', $judgeIds)->orderBy('judge_number')->orderBy('name')->get();
+
+        return [$results, $criterias, $judges];
     }
 
     // Display tabulation results
@@ -142,8 +155,8 @@ class TabulationController extends Controller
         
         if ($eventId) {
             $event = Event::findOrFail($eventId);
-            [$results, $criterias] = $this->computeResults($event);
-            return view('admin.tabulation.results', compact('event', 'results', 'criterias'));
+            [$results, $criterias, $judges] = $this->computeResults($event);
+            return view('admin.tabulation.results', compact('event', 'results', 'criterias', 'judges'));
         }
         
         $events = Event::where('is_archived', false)->get();
@@ -160,12 +173,12 @@ class TabulationController extends Controller
         }
         
         $event = Event::findOrFail($eventId);
-        [$results, $criterias] = $this->computeResults($event);
+        [$results, $criterias, $eventJudges] = $this->computeResults($event);
 
         $adminName = $request->input('admin_name');
         $judges = $request->input('judges', []);
 
-        $pdf = Pdf::loadView('admin.tabulation.print', compact('event', 'results', 'criterias', 'adminName', 'judges'))
+        $pdf = Pdf::loadView('admin.tabulation.print', compact('event', 'results', 'criterias', 'adminName', 'judges', 'eventJudges'))
             ->setPaper('a4', 'portrait');
 
         $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . '_Overall_Results.pdf';
@@ -181,15 +194,40 @@ class TabulationController extends Controller
         $criteria = Criteria::findOrFail($criteriaId);
         $event = Event::findOrFail($criteria->event_id);
         
-        [$results, $criterias] = $this->computeResults($event, $criteria->id);
+        [$results, $criterias, $eventJudges] = $this->computeResults($event, $criteria->id);
 
         $adminName = $request->input('admin_name');
         $judges = $request->input('judges', []);
 
-        $pdf = Pdf::loadView('admin.tabulation.print-category', compact('event', 'criteria', 'results', 'criterias', 'adminName', 'judges'))
+        $pdf = Pdf::loadView('admin.tabulation.print-category', compact('event', 'criteria', 'results', 'criterias', 'adminName', 'judges', 'eventJudges'))
             ->setPaper('a4', 'portrait');
 
         $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . '_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $criteria->name) . '_Results.pdf';
+        
+        return response()->streamDownload(function() use ($pdf) {
+            echo $pdf->output();
+        }, $filename, ['Content-Type' => 'application/pdf']);
+    }
+
+    // Download results by specific judge as PDF
+    public function printJudge(Request $request, $eventId, $judgeId)
+    {
+        $event = Event::findOrFail($eventId);
+        $judge = User::where('role', 'judge')->findOrFail($judgeId);
+        
+        // Compute results but filter ONLY for this judge
+        [$results, $criterias, $eventJudges] = $this->computeResults($event, null, $judge->id);
+
+        $adminName = \Illuminate\Support\Facades\Auth::user()->name; // Auto-fill admin name
+
+        $pdf = Pdf::loadView('admin.tabulation.print-judge', compact('event', 'judge', 'results', 'criterias', 'adminName'))
+            ->setPaper('a4', 'portrait');
+
+        $judgeLabel = $judge->judge_number ? 'J' . $judge->judge_number . '_' : '';
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name)
+            . '_' . $judgeLabel
+            . preg_replace('/[^A-Za-z0-9_\-]/', '_', $judge->name)
+            . '_Scores.pdf';
         
         return response()->streamDownload(function() use ($pdf) {
             echo $pdf->output();
@@ -205,7 +243,7 @@ class TabulationController extends Controller
         }
         
         $event = Event::findOrFail($eventId);
-        [$results, $criterias] = $this->computeResults($event);
+        [$results, $criterias, $eventJudges] = $this->computeResults($event);
 
         $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . "_Overall_Results.csv";
         $headers = [
@@ -253,7 +291,7 @@ class TabulationController extends Controller
         $criteria = Criteria::findOrFail($criteriaId);
         $event = Event::findOrFail($criteria->event_id);
         
-        [$results, $criterias] = $this->computeResults($event, $criteria->id);
+        [$results, $criterias, $eventJudges] = $this->computeResults($event, $criteria->id);
 
         $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . "_" . preg_replace('/[^A-Za-z0-9_\-]/', '_', $criteria->name) . "_Results.csv";
         $headers = [
@@ -363,6 +401,13 @@ class TabulationController extends Controller
     // Public index - shows list of events
     public function publicIndex()
     {
+        if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isJudge()) {
+            $judge = \Illuminate\Support\Facades\Auth::user();
+            if ($judge->event_id) {
+                return redirect()->route('results.show', $judge->event_id);
+            }
+        }
+        
         $events = Event::where('is_archived', false)->orderBy('date', 'desc')->get();
         return view('results.index', compact('events'));
     }
@@ -370,8 +415,14 @@ class TabulationController extends Controller
     // Public results - shows results for a specific event
     public function publicResults(Event $event)
     {
-        [$results, $criterias] = $this->computeResults($event);
+        if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isJudge()) {
+            if (\Illuminate\Support\Facades\Auth::user()->event_id !== $event->id) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
         
-        return view('results.show', compact('event', 'results', 'criterias'));
+        [$results, $criterias, $judges] = $this->computeResults($event);
+        
+        return view('results.show', compact('event', 'results', 'criterias', 'judges'));
     }
 }

@@ -5,7 +5,7 @@
 @section('content')
 <div class="page-header">
     <h1>Add New Contestant</h1>
-    <a href="{{ route('contestants.index') }}" class="btn">Back to List</a>
+    <a href="{{ route('contestants.index', $defaultEventId ? ['event_id' => $defaultEventId] : []) }}" class="btn">Back to List</a>
 </div>
 
 <div class="card">
@@ -17,7 +17,7 @@
             <select id="event_id" name="event_id" required>
                 <option value="">Select Event</option>
                 @foreach($events as $event)
-                    <option value="{{ $event->id }}">{{ $event->name }}</option>
+                    <option value="{{ $event->id }}" {{ $defaultEventId == $event->id ? 'selected' : '' }}>{{ $event->name }}</option>
                 @endforeach
             </select>
         </div>
@@ -49,7 +49,7 @@
         
         <div class="actions">
             <button type="submit" class="btn btn-primary">Add Contestant</button>
-            <a href="{{ route('contestants.index') }}" class="btn btn-secondary">Cancel</a>
+            <a href="{{ route('contestants.index', $defaultEventId ? ['event_id' => $defaultEventId] : []) }}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </div>

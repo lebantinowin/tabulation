@@ -109,7 +109,7 @@
 <div class="card">
     <div class="page-header" style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: none;">
         <h2><i class="fas fa-gavel"></i> Judges</h2>
-        <a href="{{ route('events.assignJudges', $event->id) }}" class="btn-icon" style="background: #D4A574;" title="Assign Judges">
+        <a href="{{ route('judges.create', ['event_id' => $event->id]) }}" class="btn-icon" style="background: #D4A574;" title="Add Judge">
             <i class="fas fa-user-plus"></i>
         </a>
     </div>
@@ -124,6 +124,7 @@
             <tr>
                 <th>Image</th>
                 <th>Name</th>
+                <th style="text-align: center;">Judge #</th>
                 <th>Email</th>
                 <th>Status</th>
             </tr>
@@ -153,7 +154,19 @@
                     <div class="user-avatar">{{ strtoupper(substr($judge->name,0,1)) }}</div>
                     @endif
                 </td>
-                <td>{{ $judge->name }}</td>
+                <td>
+                    {{ $judge->name }}
+                    @if($judge->judge_number)
+                        <br><small style="color: var(--color-muted);">Judge {{ $judge->judge_number }}</small>
+                    @endif
+                </td>
+                <td style="text-align: center;">
+                    @if($judge->judge_number)
+                        <span class="badge badge-info" style="background: var(--color-btn); color: #fff;">J{{ $judge->judge_number }}</span>
+                    @else
+                        <span style="color: #ccc;">—</span>
+                    @endif
+                </td>
                 <td>{{ $judge->email ?? 'N/A' }}</td>
                 <td>
                     @if($judge->agreement_accepted)
@@ -167,7 +180,7 @@
         </tbody>
     </table>
     @else
-    <p style="color: var(--color-muted);">No judges assigned. <a href="{{ route('events.assignJudges', $event->id) }}">Assign now</a></p>
+    <p style="color: var(--color-muted);">No judges added yet. <a href="{{ route('judges.create', ['event_id' => $event->id]) }}">Add a judge</a></p>
     @endif
 </div>
 </div>

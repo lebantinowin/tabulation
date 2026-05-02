@@ -797,7 +797,9 @@
             @elseif(auth()->user()->isJudge())
                 <a href="{{ route('judge.dashboard') }}" class="{{ request()->routeIs('judge.dashboard') ? 'active' : '' }}" title="Dashboard"><i class="fas fa-tachometer-alt" style="width: 20px; text-align: center;"></i> <span>Dashboard</span></a>
                 <a href="{{ route('scores.index') }}" class="{{ request()->routeIs('scores.*') ? 'active' : '' }}" title="Scores"><i class="fas fa-star" style="width: 20px; text-align: center;"></i> <span>Scores</span></a>
-                <a href="{{ route('results.index') }}" class="{{ request()->routeIs('results.*') ? 'active' : '' }}" title="Results"><i class="fas fa-trophy" style="width: 20px; text-align: center;"></i> <span>Results</span></a>
+                @if(auth()->user()->event_id)
+                    <a href="{{ route('results.show', auth()->user()->event_id) }}" class="{{ request()->routeIs('results.*') ? 'active' : '' }}" title="Results"><i class="fas fa-trophy" style="width: 20px; text-align: center;"></i> <span>Results</span></a>
+                @endif
                 <a href="{{ route('judge.profile') }}" class="{{ request()->routeIs('judge.profile') ? 'active' : '' }}" title="Profile"><i class="fas fa-user" style="width: 20px; text-align: center;"></i> <span>Profile</span></a>
             @endif
         </div>
@@ -808,9 +810,11 @@
         </div>
         
         <div class="logout-form">
-            <form method="POST" action="{{ route('logout') }}">
+            <form method="POST" action="{{ route('logout') }}" id="logoutForm">
                 @csrf
-                <button type="submit" title="Logout"><i class="fas fa-sign-out-alt" style="width: 20px; text-align: center;"></i> <span>Logout</span></button>
+                <button type="button" title="Logout" onclick="startLogoutCountdown()">
+                    <i class="fas fa-sign-out-alt" style="width: 20px; text-align: center;"></i> <span>Logout</span>
+                </button>
             </form>
         </div>
     </nav>
@@ -933,15 +937,35 @@
         }
 
         function confirmProceed() {
+            const callback = _confirmCallback;
             closeConfirmModal();
-            if (typeof _confirmCallback === 'function') {
-                _confirmCallback();
+            if (typeof callback === 'function') {
+                callback();
             }
         }
+
+        let _logoutTimer = null;
 
         function closeConfirmModal() {
             document.getElementById('confirmModal').classList.remove('active');
             _confirmCallback = null;
+            
+            // Clear logout timer if it exists
+            if (_logoutTimer) {
+                clearInterval(_logoutTimer);
+                _logoutTimer = null;
+            }
+            
+            // Restore default button states in case they were modified
+            const okBtn = document.getElementById('confirmOkBtn');
+            const cancelBtn = document.getElementById('confirmCancelBtn');
+            if (okBtn) okBtn.style.display = 'inline-flex';
+            if (cancelBtn) {
+                cancelBtn.style.display = 'inline-flex';
+                cancelBtn.style.alignItems = 'center';
+                cancelBtn.style.justifyContent = 'center';
+                cancelBtn.innerHTML = '<i class="fas fa-times" style="margin-right: 6px;"></i> Cancel';
+            }
         }
 
         // Keyboard support: Enter = confirm, Escape = cancel
@@ -955,6 +979,58 @@
         // Helper: attach to a form's delete/dangerous button
         function confirmForm(formEl, message, options = {}) {
             confirmAction(message, function() { formEl.submit(); }, options);
+        }
+
+        function startLogoutCountdown() {
+            const titleEl = document.getElementById('confirmTitle');
+            const messageEl = document.getElementById('confirmMessage');
+            const okBtn = document.getElementById('confirmOkBtn');
+            const cancelBtn = document.getElementById('confirmCancelBtn');
+            const iconEl = document.getElementById('confirmIcon');
+
+            titleEl.innerText = 'Logging Out';
+            iconEl.innerHTML = '<i class="fas fa-sign-out-alt" style="color: var(--color-warning);"></i>';
+            
+            // Hide Confirm button, only show Cancel
+            okBtn.style.display = 'none';
+            cancelBtn.style.display = 'inline-flex';
+            cancelBtn.style.alignItems = 'center';
+            cancelBtn.style.justifyContent = 'center';
+            cancelBtn.innerHTML = '<i class="fas fa-times" style="margin-right: 6px;"></i> Cancel Logout';
+            
+            let seconds = 5;
+            messageEl.innerHTML = `You will be automatically logged out in <br><strong style="font-size: 3rem; color: var(--color-danger); display: block; margin: 1rem 0;">${seconds}</strong>`;
+
+            document.getElementById('confirmModal').classList.add('active');
+
+            // Clear any existing timer just in case
+            if (_logoutTimer) clearInterval(_logoutTimer);
+
+            _logoutTimer = setInterval(() => {
+                seconds--;
+                if (seconds > 0) {
+                    messageEl.innerHTML = `You will be automatically logged out in <br><strong style="font-size: 3rem; color: var(--color-danger); display: block; margin: 1rem 0;">${seconds}</strong>`;
+                } else {
+                    clearInterval(_logoutTimer);
+                    _logoutTimer = null;
+                    
+                    cancelBtn.style.display = 'none';
+                    messageEl.innerHTML = '<div style="margin: 2rem 0;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem;"></i><p style="margin-top: 1rem;">Logging out securely...</p></div>';
+                    
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = "{{ route('logout') }}";
+                    
+                    const csrfToken = document.createElement('input');
+                    csrfToken.type = 'hidden';
+                    csrfToken.name = '_token';
+                    csrfToken.value = "{{ csrf_token() }}";
+                    
+                    form.appendChild(csrfToken);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            }, 1000);
         }
     </script>
 </body>

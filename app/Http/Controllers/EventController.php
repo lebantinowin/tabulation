@@ -191,4 +191,17 @@ class EventController extends Controller
         AuditLog::log('event_unarchived', 'Unarchived event: ' . $event->name);
         return redirect()->back()->with('success', 'Event unarchived successfully.');
     }
+
+    public function resetScores(Event $event)
+    {
+        $contestantIds = \App\Models\Contestant::where('event_id', $event->id)->pluck('id');
+        
+        if ($contestantIds->isNotEmpty()) {
+            \App\Models\Score::whereIn('contestant_id', $contestantIds)->forceDelete();
+            \App\Models\Tabulation::whereIn('contestant_id', $contestantIds)->delete();
+        }
+        
+        AuditLog::log('event_scores_reset', 'Reset all scores to zero for event: ' . $event->name);
+        return redirect()->back()->with('success', 'All scores for this event have been successfully reset to zero.');
+    }
 }

@@ -8,11 +8,11 @@
         <h1>{{ $event->name }}</h1>
         <p style="color: #666;">
             <i class="fas fa-calendar"></i> {{ \Carbon\Carbon::parse($event->date)->format('F d, Y') }}
-            
+
             @php
                 $statusClass = '';
                 $statusText = '';
-                
+
                 if($event->status == 'ongoing') {
                     $statusClass = 'badge-success';
                     $statusText = 'Ongoing';
@@ -33,7 +33,7 @@
                     $statusText = $event->status;
                 }
             @endphp
-            
+
             <span class="badge {{ $statusClass }}" style="margin-left: 10px;">{{ $statusText }}</span>
         </p>
     </div>
@@ -47,21 +47,54 @@
         No results available yet.
     </div>
 @else
+    @if(session('success'))
+        <div class="alert alert-success" style="margin-bottom: 1.5rem;">
+            {{ session('success') }}
+        </div>
+    @endif
+
     <div class="card">
         <div class="flex justify-between items-center mb-4" style="flex-wrap: wrap; gap: 1rem;">
             <h2 style="margin-bottom: 0;">Overall Rankings</h2>
-            
+
             @auth
             @if(auth()->user()->isAdmin())
-            <div class="flex gap-2" style="flex-wrap: wrap;">
+            <div class="flex gap-2" style="flex-wrap: wrap; align-items: center;">
                 <button type="button" onclick="openPdfModal('{{ route('tabulation.print', ['event_id' => $event->id]) }}')" class="btn" style="background: var(--color-info);">
                     <i class="fas fa-file-pdf"></i> Export PDF
                 </button>
+                @if(count($judges) > 0)
+                <div style="position: relative; display: inline-block;" id="exportJudgeWrap">
+                    <button type="button" onclick="toggleDropdown('exportJudgeMenu')" class="btn"
+                            style="background: var(--color-primary); display:flex; align-items:center; gap:0.4rem;">
+                        <i class="fas fa-print"></i> Export Judge
+                        <i class="fas fa-chevron-down" style="font-size:0.7rem;"></i>
+                    </button>
+                    <div id="exportJudgeMenu"
+                         style="display:none; position:absolute; top:110%; right:0; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,0.12); min-width:180px; z-index:999; overflow:hidden;">
+                        @foreach($judges as $j)
+                            <a href="{{ route('tabulation.print-judge', ['eventId' => $event->id, 'judgeId' => $j->id]) }}"
+                               target="_blank"
+                               style="display:block; padding:0.6rem 1rem; font-size:0.85rem; color:#333; text-decoration:none; border-bottom:1px solid #f0f0f0;"
+                               onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='#fff'">
+                                <i class="fas fa-user" style="margin-right:6px; color:var(--color-primary);"></i>
+                                {{ $j->judge_number ? 'Judge ' . $j->judge_number : $j->name }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+                <form action="{{ route('events.resetScores', $event->id) }}" method="POST" style="margin:0;" id="resetScoresForm">
+                    @csrf
+                    <button type="button" onclick="startResetScoresCountdown(document.getElementById('resetScoresForm'))" class="btn" style="background: var(--color-danger); color: white;">
+                        <i class="fas fa-trash-alt"></i> Reset Scores
+                    </button>
+                </form>
             </div>
             @endif
             @endauth
         </div>
-        
+
         <table>
             <thead>
                 <tr>
@@ -69,10 +102,10 @@
                     <th>Contestant</th>
                     @if(count($criterias) > 0)
                         @foreach($criterias as $criteria)
-                            <th style="text-align: center;">{{ $criteria->name }}</th>
+                            <th style="text-align: center;">{{ $criteria->name }}<br><small style="font-weight: 400; opacity: 0.75;">({{ $criteria->weight }}%)</small></th>
                         @endforeach
                     @endif
-                    <th style="text-align: center;">Total Score</th>
+                    <th style="text-align: center;">Overall Weighted Score</th>
                 </tr>
             </thead>
             <tbody>
@@ -109,43 +142,51 @@
                         @if(count($criterias) > 0)
                             @foreach($criterias as $criteria)
                                 <td style="text-align: center;">
-                                    {{ number_format($result['criteria_scores'][$criteria->id]['average'] ?? 0, 2) }}
+                                    @if(count($result['criteria_scores'][$criteria->id]['scores'] ?? []) == 0)
+                                        <span class="badge badge-warning" style="background: #f39c12; color: #fff; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px;" title="Not yet scored by any judge">Pending</span>
+                                    @else
+                                        {{ number_format(($result['criteria_scores'][$criteria->id]['average'] ?? 0) * ($criteria->weight / 100), 2) }}%
+                                    @endif
                                 </td>
                             @endforeach
                         @endif
                         <td style="text-align: center;">
-                            <strong style="font-size: 1.1rem;">{{ number_format($result['total_score'], 2) }}</strong>
+                            <strong style="font-size: 1.1rem;">{{ number_format($result['total_score'], 2) }}%</strong>
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
-    
+
     @if(count($criterias) > 0)
         @foreach($criterias as $criteria)
             <div class="card">
                 <div class="flex justify-between items-center mb-4" style="flex-wrap: wrap; gap: 1rem;">
-                    <h3 style="margin-bottom: 0;">{{ $criteria->name }} - Breakdown</h3>
-                    
+                    <h3 style="margin-bottom: 0;">{{ $criteria->name }} - Breakdown (Weight: {{ $criteria->weight }}%)</h3>
+
                     @auth
                     @if(auth()->user()->isAdmin())
-                    <div class="flex gap-2" style="flex-wrap: wrap;">
-                        <button type="button" onclick="openPdfModal('{{ route('tabulation.print-category', ['criteriaId' => $criteria->id]) }}')" class="btn btn-sm" style="background: var(--color-info); padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                            <i class="fas fa-file-pdf"></i> Export PDF
-                        </button>
-                    </div>
+                    <button type="button" onclick="openPdfModal('{{ route('tabulation.print-category', ['criteriaId' => $criteria->id]) }}')" class="btn btn-sm" style="background: var(--color-info); padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
                     @endif
                     @endauth
                 </div>
-                
+
                 <table>
                     <thead>
                         <tr>
                             <th style="width: 60px; text-align: center;">Rank</th>
                             <th>Contestant</th>
-                            <th style="text-align: center;">Average Score</th>
-                            <th style="text-align: center;">Total</th>
+                            @auth
+                            @if(auth()->user()->isAdmin())
+                                @foreach($judges as $judge)
+                                    <th style="text-align: center;">{{ $judge->judge_number ? 'Judge ' . $judge->judge_number : $judge->name }}</th>
+                                @endforeach
+                            @endif
+                            @endauth
+                            <th style="text-align: center;">Weighted Score</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -153,16 +194,19 @@
                             $criteriaResults = [];
                             foreach($results as $result) {
                                 $criteriaResults[] = [
-                                    'contestant' => $result['contestant'],
-                                    'average' => $result['criteria_scores'][$criteria->id]['average'] ?? 0,
-                                    'total' => $result['criteria_scores'][$criteria->id]['total'] ?? 0,
+                                    'contestant'   => $result['contestant'],
+                                    'average'      => $result['criteria_scores'][$criteria->id]['average'] ?? 0,
+                                    'total'        => $result['criteria_scores'][$criteria->id]['total'] ?? 0,
+                                    'scores_count' => count($result['criteria_scores'][$criteria->id]['scores'] ?? []),
+                                    'scores'       => $result['criteria_scores'][$criteria->id]['scores'] ?? collect(),
+                                    'weight'       => $criteria->weight,
                                 ];
                             }
                             usort($criteriaResults, function($a, $b) {
                                 return $b['average'] - $a['average'];
                             });
                         @endphp
-                        
+
                         @foreach($criteriaResults as $index => $cr)
                             <tr>
                                 <td style="text-align: center;">{{ $index + 1 }}</td>
@@ -175,11 +219,40 @@
                                                 {{ substr($cr['contestant']->name, 0, 1) }}
                                             </div>
                                         @endif
-                                        {{ $cr['contestant']->name }}
+                                        <div>
+                                            {{ $cr['contestant']->name }}
+                                            @if($cr['contestant']->number)
+                                                <br><small style="color: #666;">#{{ $cr['contestant']->number }}</small>
+                                            @endif
+                                        </div>
                                     </div>
                                 </td>
-                                <td style="text-align: center;">{{ number_format($cr['average'], 2) }}</td>
-                                <td style="text-align: center;">{{ number_format($cr['total'], 2) }}</td>
+
+                                @auth
+                                @if(auth()->user()->isAdmin())
+                                    @foreach($judges as $judge)
+                                        <td style="text-align: center;">
+                                            @php
+                                                $judgeScore = $cr['scores']->where('judge_id', $judge->id)->first();
+                                            @endphp
+                                            @if($judgeScore)
+                                                <div>{{ number_format($judgeScore->score, 2) }}</div>
+                                                <small style="color: var(--color-muted); font-size: 0.75rem;">{{ number_format($judgeScore->score * ($cr['weight'] / 100), 2) }}%</small>
+                                            @else
+                                                <span style="color: #ccc;">-</span>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                @endif
+                                @endauth
+
+                                <td style="text-align: center;">
+                                    @if($cr['scores_count'] == 0)
+                                        <span class="badge badge-warning" style="background: #f39c12; color: #fff; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Pending</span>
+                                    @else
+                                        <strong style="font-size: 1.05rem;">{{ number_format($cr['average'] * ($cr['weight'] / 100), 2) }}%</strong>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -190,5 +263,65 @@
 @endif
 
 @include('partials.pdf_signature_modal')
+
+<script>
+function toggleDropdown(id) {
+    const menu = document.getElementById(id);
+    const isOpen = menu.style.display !== 'none';
+    document.querySelectorAll('[id^="exportJudgeMenu"], [id^="printJudgeMenu_"]').forEach(m => m.style.display = 'none');
+    menu.style.display = isOpen ? 'none' : 'block';
+}
+
+document.addEventListener('click', function(e) {
+    const isInside = e.target.closest('#exportJudgeWrap') || e.target.closest('[id^="printJudgeWrap_"]');
+    if (!isInside) {
+        document.querySelectorAll('[id^="exportJudgeMenu"], [id^="printJudgeMenu_"]').forEach(m => m.style.display = 'none');
+    }
+});
+
+function startResetScoresCountdown(formEl) {
+    confirmAction('Are you sure you want to reset ALL scores to zero? This action cannot be undone.', function() {
+        
+        // The confirmProceed() function closes the modal, so we must re-open it for the countdown
+        document.getElementById('confirmModal').classList.add('active');
+        
+        // Start countdown
+        const titleEl = document.getElementById('confirmTitle');
+        const messageEl = document.getElementById('confirmMessage');
+        const okBtn = document.getElementById('confirmOkBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+        const iconEl = document.getElementById('confirmIcon');
+
+        titleEl.innerText = 'Resetting Scores';
+        iconEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: var(--color-danger);"></i>';
+        
+        // Hide Confirm button, only show Cancel
+        okBtn.style.display = 'none';
+        cancelBtn.style.display = 'inline-flex';
+        cancelBtn.style.alignItems = 'center';
+        cancelBtn.style.justifyContent = 'center';
+        cancelBtn.innerHTML = '<i class="fas fa-times" style="margin-right: 6px;"></i> Cancel Reset';
+        
+        let seconds = 5;
+        messageEl.innerHTML = `All scores will be permanently deleted in <br><strong style="font-size: 3rem; color: var(--color-danger); display: block; margin: 1rem 0;">${seconds}</strong>`;
+
+        // Reuse _logoutTimer from app.blade.php so closeConfirmModal automatically clears it
+        if (typeof _logoutTimer !== 'undefined' && _logoutTimer) {
+            clearInterval(_logoutTimer);
+        }
+
+        window._logoutTimer = setInterval(() => {
+            seconds--;
+            if (seconds <= 0) {
+                clearInterval(window._logoutTimer);
+                formEl.submit();
+            } else {
+                messageEl.innerHTML = `All scores will be permanently deleted in <br><strong style="font-size: 3rem; color: var(--color-danger); display: block; margin: 1rem 0;">${seconds}</strong>`;
+            }
+        }, 1000);
+        
+    }, {title: 'Reset All Scores?'});
+}
+</script>
 
 @endsection

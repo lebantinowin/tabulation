@@ -22,31 +22,64 @@ class JudgeController extends Controller
         return view('judge.dashboard', compact('judge', 'event', 'contestants'));
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $judges = User::where('role', 'judge')->get();
-        return view('admin.judges.index', compact('judges'));
+        $events = Event::orderBy('date', 'desc')->get();
+        $selectedEventId = $request->get('event_id');
+
+        $judgesQuery = User::where('role', 'judge');
+        if ($selectedEventId) {
+            $judgesQuery->where('event_id', $selectedEventId);
+        }
+        $judges = $judgesQuery->orderBy('judge_number')->orderBy('name')->get();
+
+        return view('admin.judges.index', compact('judges', 'events', 'selectedEventId'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('admin.judges.create');
+        $events = Event::orderBy('date', 'desc')->get();
+        $defaultEventId = $request->get('event_id');
+
+        // Build a map: event_id => [taken judge numbers]
+        $takenNumbers = User::where('role', 'judge')
+            ->whereNotNull('judge_number')
+            ->whereNotNull('event_id')
+            ->get(['event_id', 'judge_number'])
+            ->groupBy('event_id')
+            ->map(fn($group) => $group->pluck('judge_number')->toArray());
+
+        return view('admin.judges.create', compact('events', 'defaultEventId', 'takenNumbers'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name'  => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'name'         => 'required|string|max:255',
+            'judge_number' => 'nullable|integer|min:1|max:99',
+            'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
+        // Uniqueness check: judge_number must be unique within the same event
+        if ($request->judge_number && $request->event_id) {
+            $exists = User::where('role', 'judge')
+                ->where('event_id', $request->event_id)
+                ->where('judge_number', $request->judge_number)
+                ->exists();
+            if ($exists) {
+                return back()->withInput()
+                    ->withErrors(['judge_number' => 'Judge ' . $request->judge_number . ' is already taken for this event. Please choose a different number.']);
+            }
+        }
+
         $judge = new User();
-        $judge->name       = $request->name;
-        $judge->role       = 'judge';
-        $judge->is_active  = true;
-        $judge->event_id   = $request->event_id;
-        $judge->login_code = $this->generateUniqueLoginCode();
-        $judge->password   = bcrypt(Str::random(16));
+        $judge->name         = $request->name;
+        $judge->role         = 'judge';
+        $judge->is_active    = true;
+        $judge->event_id     = $request->event_id;
+        $judge->judge_number = $request->judge_number;
+        $judge->login_code   = $this->generateUniqueLoginCode();
+        $judge->password     = bcrypt(Str::random(16));
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('judges', 'public');
@@ -57,7 +90,11 @@ class JudgeController extends Controller
 
         AuditLog::log('judge_created', 'Created judge: ' . $judge->name);
 
-        return redirect()->route('judges.index')->with('success', 'Judge created successfully.');
+        $redirect = $request->event_id
+            ? route('judges.index', ['event_id' => $request->event_id])
+            : route('judges.index');
+
+        return redirect($redirect)->with('success', 'Judge created successfully.');
     }
 
     public function show(User $judge)
@@ -67,18 +104,44 @@ class JudgeController extends Controller
 
     public function edit(User $judge)
     {
-        return view('admin.judges.edit', compact('judge'));
+        $events = Event::orderBy('date', 'desc')->get();
+
+        // Build taken numbers map, excluding this judge's own number
+        $takenNumbers = User::where('role', 'judge')
+            ->where('id', '!=', $judge->id)
+            ->whereNotNull('judge_number')
+            ->whereNotNull('event_id')
+            ->get(['event_id', 'judge_number'])
+            ->groupBy('event_id')
+            ->map(fn($group) => $group->pluck('judge_number')->toArray());
+
+        return view('admin.judges.edit', compact('judge', 'events', 'takenNumbers'));
     }
 
     public function update(Request $request, User $judge)
     {
         $request->validate([
-            'name'  => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'name'         => 'required|string|max:255',
+            'judge_number' => 'nullable|integer|min:1|max:99',
+            'image'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $judge->name     = $request->name;
-        $judge->event_id = $request->event_id;
+        // Uniqueness check: exclude this judge's own record
+        if ($request->judge_number && $request->event_id) {
+            $exists = User::where('role', 'judge')
+                ->where('event_id', $request->event_id)
+                ->where('judge_number', $request->judge_number)
+                ->where('id', '!=', $judge->id)
+                ->exists();
+            if ($exists) {
+                return back()->withInput()
+                    ->withErrors(['judge_number' => 'Judge ' . $request->judge_number . ' is already taken for this event. Please choose a different number.']);
+            }
+        }
+
+        $judge->name         = $request->name;
+        $judge->event_id     = $request->event_id;
+        $judge->judge_number = $request->judge_number;
 
         if ($request->hasFile('image')) {
             if ($judge->image) {

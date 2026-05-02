@@ -208,8 +208,11 @@
             <!-- Judge Login Form -->
             <div class="login-form" id="judge-form">
                 <div class="floating-group">
-                    <input type="text" id="login_code" name="login_code" placeholder=" " maxlength="6" style="text-transform: uppercase; letter-spacing: 4px; text-align: left; font-size: 1.2rem; padding-top: 1.5rem; padding-bottom: 0.5rem;">
+                    <input type="password" id="login_code" name="login_code" placeholder=" " maxlength="6" style="letter-spacing: 8px; text-align: left; font-size: 1.2rem; padding-top: 1.5rem; padding-bottom: 0.5rem; font-family: monospace;">
                     <label for="login_code">Login Code</label>
+                    <button type="button" tabindex="-1" onclick="toggleLoginCode()" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #718096; font-size: 1.1rem;">
+                        <i class="fas fa-eye" id="toggleCodeIcon"></i>
+                    </button>
                 </div>
                 
                 <button type="submit" class="btn">Login with Code</button>
@@ -238,9 +241,19 @@ function switchTab(type) {
     }
 }
 
-// Auto-uppercase the login code
-document.getElementById('login_code')?.addEventListener('input', function() {
-    this.value = this.value.toUpperCase();
-});
+
+function toggleLoginCode() {
+    const input = document.getElementById('login_code');
+    const icon = document.getElementById('toggleCodeIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
 </script>
 @endsection
