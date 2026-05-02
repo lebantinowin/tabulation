@@ -45,49 +45,7 @@
         @forelse($contestants as $contestant)
         <tr>
             <td>
-                @php
-                $imagePath = $contestant->image;
-                $fullPath = '';
-                $imageFound = false;
-                
-                // Build list of possible paths based on stored image path
-                $possiblePaths = [];
-                
-                if ($imagePath) {
-                    // If the path already contains 'storage', use as-is
-                    if (str_contains($imagePath, 'storage/')) {
-                        $possiblePaths[] = $imagePath;
-                    }
-                    // If the path has contestants prefix
-                    elseif (str_contains($imagePath, 'contestants/')) {
-                        $possiblePaths[] = 'storage/' . $imagePath;
-                        $possiblePaths[] = $imagePath;
-                    }
-                    // Just the filename
-                    else {
-                        $possiblePaths[] = 'storage/contestants/' . $imagePath;
-                        $possiblePaths[] = 'storage/' . $imagePath;
-                        $possiblePaths[] = 'contestants/' . $imagePath;
-                        $possiblePaths[] = $imagePath;
-                    }
-                }
-                
-                foreach ($possiblePaths as $path) {
-                    if (file_exists(public_path($path))) {
-                        $fullPath = $path;
-                        $imageFound = true;
-                        break;
-                    }
-                }
-                @endphp
-                
-                @if($imageFound && $fullPath)
-                    <img src="{{ asset($fullPath) }}" alt="{{ $contestant->name }}" class="profile-image">
-                @else
-                    <div class="user-avatar">
-                        {{ strtoupper(substr($contestant->name, 0, 1)) }}
-                    </div>
-                @endif
+                <img src="{{ $contestant->image_url }}" alt="{{ $contestant->name }}" class="profile-image">
             </td>
             <td>{{ $contestant->name }}</td>
             <td>{{ $contestant->number }}</td>

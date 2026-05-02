@@ -25,9 +25,10 @@ class Contestant extends Model
     public function getImageUrlAttribute()
     {
         $imagePath = $this->image;
+        $placeholder = asset('placeholder.svg');
         
         if (!$imagePath) {
-            return null;
+            return $placeholder;
         }
 
         $possiblePaths = [];
@@ -50,7 +51,7 @@ class Contestant extends Model
             }
         }
 
-        return null;
+        return $placeholder;
     }
 
     public function event()

@@ -46,54 +46,7 @@
         @forelse($judges as $judge)
         <tr>
             <td>
-                @if($judge->image)
-                    @php
-                    $imagePath = $judge->image;
-                    $fullPath = '';
-                    $imageFound = false;
-                    
-                    // Build list of possible paths based on stored image path
-                    $possiblePaths = [];
-                    
-                    if ($imagePath) {
-                        // If the path already contains 'storage', use as-is
-                        if (str_contains($imagePath, 'storage/')) {
-                            $possiblePaths[] = $imagePath;
-                        }
-                        // If the path has judges prefix
-                        elseif (str_contains($imagePath, 'judges/')) {
-                            $possiblePaths[] = 'storage/' . $imagePath;
-                            $possiblePaths[] = $imagePath;
-                        }
-                        // Just the filename
-                        else {
-                            $possiblePaths[] = 'storage/judges/' . $imagePath;
-                            $possiblePaths[] = 'storage/' . $imagePath;
-                            $possiblePaths[] = 'judges/' . $imagePath;
-                            $possiblePaths[] = $imagePath;
-                        }
-                    }
-                    
-                    foreach ($possiblePaths as $path) {
-                        if (file_exists(public_path($path))) {
-                            $fullPath = $path;
-                            $imageFound = true;
-                            break;
-                        }
-                    }
-                    @endphp
-                    @if($imageFound && $fullPath)
-                    <img src="{{ asset($fullPath) }}" alt="{{ $judge->name }}" class="profile-image">
-                    @else
-                    <div class="user-avatar">
-                        {{ strtoupper(substr($judge->name, 0, 1)) }}
-                    </div>
-                    @endif
-                @else
-                    <div class="user-avatar">
-                        {{ strtoupper(substr($judge->name, 0, 1)) }}
-                    </div>
-                @endif
+                <img src="{{ $judge->image_url }}" alt="{{ $judge->name }}" class="user-avatar" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
             </td>
             <td>
                 {{ $judge->name }}

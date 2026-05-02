@@ -23,6 +23,40 @@ class User extends Authenticatable
         'event_id',
     ];
 
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        $imagePath = $this->image;
+        $placeholder = asset('placeholder.svg');
+        
+        if (!$imagePath) {
+            return $placeholder;
+        }
+
+        $possiblePaths = [];
+        
+        if (str_contains($imagePath, 'storage/')) {
+            $possiblePaths[] = $imagePath;
+        } elseif (str_contains($imagePath, 'judges/')) {
+            $possiblePaths[] = 'storage/' . $imagePath;
+            $possiblePaths[] = $imagePath;
+        } else {
+            $possiblePaths[] = 'storage/judges/' . $imagePath;
+            $possiblePaths[] = 'storage/' . $imagePath;
+            $possiblePaths[] = 'judges/' . $imagePath;
+            $possiblePaths[] = $imagePath;
+        }
+
+        foreach ($possiblePaths as $path) {
+            if (file_exists(public_path($path))) {
+                return asset($path);
+            }
+        }
+
+        return $placeholder;
+    }
+
     protected $hidden = [
         'password',
         'remember_token',
