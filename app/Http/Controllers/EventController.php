@@ -204,4 +204,18 @@ class EventController extends Controller
         AuditLog::log('event_scores_reset', 'Reset all scores to zero for event: ' . $event->name);
         return redirect()->back()->with('success', 'All scores for this event have been successfully reset to zero.');
     }
+
+    public function setPerforming(Request $request, Event $event)
+    {
+        $request->validate([
+            'contestant_id' => 'nullable|exists:contestants,id'
+        ]);
+
+        $event->update(['current_contestant_id' => $request->contestant_id]);
+        
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+        return redirect()->back()->with('success', 'Performing contestant updated.');
+    }
 }

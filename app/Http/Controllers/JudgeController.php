@@ -22,6 +22,15 @@ class JudgeController extends Controller
         return view('judge.dashboard', compact('judge', 'event', 'contestants'));
     }
 
+    public function currentPerforming()
+    {
+        $judge = Auth::user();
+        $event = $judge->event_id ? Event::find($judge->event_id) : null;
+        return response()->json([
+            'current_contestant_id' => $event ? $event->current_contestant_id : null
+        ]);
+    }
+
     public function index(Request $request)
     {
         $events = Event::orderBy('date', 'desc')->get();

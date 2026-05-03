@@ -86,6 +86,9 @@ class ScoreController extends Controller
             // Audit log for score update
             AuditLog::log('score_update', 'Updated score for contestant "' . $contestant->name . '" criteria "' . $criteria->name . '"');
             
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Score auto-saved successfully.']);
+            }
             return redirect()->route('scores.index')
                 ->with('success', 'Score auto-saved successfully.');
         }
@@ -95,6 +98,9 @@ class ScoreController extends Controller
         // Audit log for new score
         AuditLog::log('score_created', 'Submitted score for contestant "' . $contestant->name . '" criteria "' . $criteria->name . '"');
 
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Score submitted successfully.']);
+        }
         return redirect()->route('scores.index')
             ->with('success', 'Score submitted successfully.');
     }

@@ -30,7 +30,12 @@
 @if(isset($event) && $event)
 <div class="card">
     <div class="flex justify-between items-center mb-3" style="flex-wrap: wrap; gap: 0.75rem;">
-        <h2 class="mb-0">{{ $event->name }} — Results</h2>
+        <div class="flex items-center gap-3">
+            <h2 class="mb-0">{{ $event->name }} — Results</h2>
+            <span id="autoRefreshTimer" class="badge badge-secondary" style="font-size: 0.8rem; font-weight: normal;">
+                <i class="fas fa-sync-alt fa-spin"></i> Refreshing in 60s
+            </span>
+        </div>
         <div class="flex gap-2" style="flex-wrap: wrap;">
             <button type="button" onclick="openPdfModal('{{ route('tabulation.print', ['event_id' => $event->id]) }}')" class="btn" style="background: var(--color-info);">
                 <i class="fas fa-file-pdf"></i> Export PDF
@@ -65,9 +70,9 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="resultsTableBody">
                 @foreach($results as $result)
-                <tr style="{{ $result['is_overridden'] ? 'background-color: #fffbea;' : '' }}">
+                <tr data-contestant-id="{{ $result['contestant']->id }}" style="{{ $result['is_overridden'] ? 'background-color: #fffbea;' : '' }} {{ $event->current_contestant_id == $result['contestant']->id ? 'box-shadow: inset 0 0 0 2px var(--color-success); background-color: #f0fdf4;' : '' }}">
                     <td>
                         <span class="badge {{ $result['rank'] <= 3 ? 'badge-success' : 'badge-secondary' }}">#{{ $result['rank'] }}</span>
                     </td>
@@ -89,9 +94,12 @@
                             <br><span class="badge badge-warning" style="font-size: 0.7rem;">Overridden</span>
                         @endif
                     </td>
-                    <td>
+                    <td style="display: flex; gap: 0.5rem; align-items: center;">
                         <button type="button" class="btn-icon btn-icon-edit" title="Override Score / Add Note" onclick="openOverrideModal({{ $result['contestant']->id }}, '{{ addslashes($result['contestant']->name) }}', {{ $result['total_score'] }}, '{{ addslashes($result['message'] ?? '') }}')">
                             <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn-icon" style="background: {{ $event->current_contestant_id == $result['contestant']->id ? '#22c55e' : '#64748b' }}; color: white; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; transition: background 0.2s;" title="{{ $event->current_contestant_id == $result['contestant']->id ? 'Currently Performing' : 'Set as Performing' }}" onclick="setPerforming({{ $result['contestant']->id }})">
+                            <i class="fas fa-microphone"></i>
                         </button>
                     </td>
                 </tr>
@@ -165,6 +173,88 @@
     document.getElementById('overrideModal').addEventListener('click', function(e) {
         if (e.target === this) this.classList.remove('active');
     });
+
+    function setPerforming(contestantId) {
+        fetch(`{{ route('events.setPerforming', $event->id) }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ contestant_id: contestantId })
+        }).then(res => res.json()).then(data => {
+            if (data.success) {
+                refreshResultsTable(); // immediately trigger refresh to show UI change
+            }
+        });
+    }
+
+    // Auto-refresh and FLIP animation
+    function refreshResultsTable() {
+        fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTbody = doc.getElementById('resultsTableBody');
+                if (!newTbody) return;
+
+                const currentTbody = document.getElementById('resultsTableBody');
+                
+                // FLIP First: Measure current bounds
+                const firstRects = {};
+                Array.from(currentTbody.children).forEach(row => {
+                    const id = row.getAttribute('data-contestant-id');
+                    if (id) firstRects[id] = row.getBoundingClientRect();
+                });
+
+                // Apply new HTML content
+                currentTbody.innerHTML = newTbody.innerHTML;
+
+                // FLIP Last: Measure new bounds
+                const lastRects = {};
+                Array.from(currentTbody.children).forEach(row => {
+                    const id = row.getAttribute('data-contestant-id');
+                    if (id) {
+                        lastRects[id] = row.getBoundingClientRect();
+                        
+                        // FLIP Invert: Calculate difference and translate
+                        if (firstRects[id]) {
+                            const deltaY = firstRects[id].top - lastRects[id].top;
+                            
+                            // Only animate if position changed
+                            if (deltaY !== 0) {
+                                row.style.transform = `translateY(${deltaY}px)`;
+                                row.style.transition = 'none';
+                                
+                                // FLIP Play: Remove transform to animate to natural position
+                                requestAnimationFrame(() => {
+                                    row.style.transform = '';
+                                    row.style.transition = 'transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1)';
+                                });
+                            }
+                        }
+                    }
+                });
+            });
+    }
+
+    // Auto refresh every 60 seconds
+    const REFRESH_INTERVAL = 60;
+    let secondsLeft = REFRESH_INTERVAL;
+    
+    setInterval(() => {
+        secondsLeft--;
+        const timerEl = document.getElementById('autoRefreshTimer');
+        if (timerEl) {
+            timerEl.innerHTML = `<i class="fas fa-sync-alt fa-spin"></i> Refreshing in ${secondsLeft}s`;
+        }
+        
+        if (secondsLeft <= 0) {
+            refreshResultsTable();
+            secondsLeft = REFRESH_INTERVAL;
+        }
+    }, 1000);
 </script>
 @endif
 

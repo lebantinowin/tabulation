@@ -17,6 +17,7 @@ class Event extends Model
         'date',
         'status',
         'is_archived',
+        'current_contestant_id',
     ];
 
     public function criteria()
@@ -37,5 +38,10 @@ class Event extends Model
     public function judges()
     {
         return $this->hasMany(User::class)->where('role', 'judge');
+    }
+
+    public function currentContestant()
+    {
+        return $this->belongsTo(Contestant::class, 'current_contestant_id');
     }
 }

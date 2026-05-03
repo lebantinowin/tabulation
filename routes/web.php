@@ -43,6 +43,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/events/{event}/archive', [App\Http\Controllers\EventController::class, 'archive'])->name('events.archive');
     Route::post('/events/{event}/unarchive', [App\Http\Controllers\EventController::class, 'unarchive'])->name('events.unarchive');
     Route::post('/events/{event}/reset-scores', [App\Http\Controllers\EventController::class, 'resetScores'])->name('events.resetScores');
+    Route::post('/events/{event}/set-performing', [App\Http\Controllers\EventController::class, 'setPerforming'])->name('events.setPerforming');
     Route::resource('events', EventController::class);
 
     // Criteria routes
@@ -97,6 +98,7 @@ Route::get('/results/{event}', [TabulationController::class, 'publicResults'])->
 // Judge Dashboard
 Route::middleware(['auth', 'role:judge'])->group(function () {
     Route::get('/judge/dashboard', [JudgeController::class, 'dashboard'])->name('judge.dashboard');
+    Route::get('/judge/current-performing', [JudgeController::class, 'currentPerforming'])->name('judge.currentPerforming');
 
     // Scoring
     Route::resource('scores', ScoreController::class);
