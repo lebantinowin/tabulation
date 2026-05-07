@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Criteria;
 use App\Models\Event;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 
 class CriteriaController extends Controller
@@ -11,8 +12,9 @@ class CriteriaController extends Controller
     // Display a listing of the resource.
     public function index()
     {
-        $criterias = Criteria::with('event')->get();
-        return view('admin.criteria.index', compact('criterias'));
+        // Criteria are now managed per-event on the event detail page.
+        return redirect()->route('events.index')
+            ->with('info', 'Criteria are managed within each individual event.');
     }
 
     public function create()
@@ -40,15 +42,17 @@ class CriteriaController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        Criteria::create($request->all());
+        $criteria = Criteria::create($request->all());
+
+        AuditLog::log('criteria_created', "Created criteria: {$criteria->name}");
 
         // Redirect back to the event show page if event_id was provided
         if ($request->has('event_id')) {
-            return redirect()->route('events.show', $request->event_id)
+            return redirect(route('events.show', $request->event_id) . '#criteria')
                 ->with('success', 'Criteria created successfully.');
         }
 
-        return redirect()->route('criteria.index')
+        return redirect()->route('events.index')
             ->with('success', 'Criteria created successfully.');
     }
 
@@ -78,7 +82,9 @@ class CriteriaController extends Controller
 
         $criteria->update($request->all());
 
-        return redirect()->route('criteria.index')
+        AuditLog::log('criteria_updated', "Updated criteria: {$criteria->name}");
+
+        return redirect(route('events.show', $criteria->event_id) . '#criteria')
             ->with('success', 'Criteria updated successfully.');
     }
 
@@ -86,14 +92,17 @@ class CriteriaController extends Controller
     public function destroy(Criteria $criteria)
     {
         $eventId = $criteria->event_id;
+        $name = $criteria->name;
         $criteria->delete();
+        
+        AuditLog::log('criteria_deleted', "Deleted criteria: {$name}");
 
         if ($eventId) {
-            return redirect()->route('events.show', $eventId)
+            return redirect(route('events.show', $eventId) . '#criteria')
                 ->with('success', 'Criteria deleted successfully.');
         }
 
-        return redirect()->route('criteria.index')
+        return redirect()->route('events.index')
             ->with('success', 'Criteria deleted successfully.');
     }
 }

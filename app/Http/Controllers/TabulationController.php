@@ -10,6 +10,7 @@ use App\Models\Criteria;
 use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class TabulationController extends Controller
@@ -32,8 +33,8 @@ class TabulationController extends Controller
             $q->where('event_id', $event->id);
         });
 
-        if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isJudge()) {
-            $allScoresQuery->where('judge_id', \Illuminate\Support\Facades\Auth::id());
+        if (Auth::check() && Auth::user()->isJudge()) {
+            $allScoresQuery->where('judge_id', Auth::id());
         } elseif ($specificJudgeId) {
             $allScoresQuery->where('judge_id', $specificJudgeId);
         }
@@ -44,6 +45,8 @@ class TabulationController extends Controller
         $overrides = Tabulation::whereIn('contestant_id', $contestants->pluck('id'))->get()->keyBy('contestant_id');
 
         $results = [];
+
+        $totalAssignedJudges = User::where('role', 'judge')->where('event_id', $event->id)->count();
 
         foreach ($contestants as $contestant) {
             $contestantScores = $allScores->where('contestant_id', $contestant->id);
@@ -85,6 +88,15 @@ class TabulationController extends Controller
                 $isOverridden = false;
             }
             
+            // Calculate how many judges have completely scored this contestant
+            $judgeScoreCounts = $contestantScores->groupBy('judge_id')->map->count();
+            $completedJudges = 0;
+            foreach ($judgeScoreCounts as $cCount) {
+                if ($cCount == $criterias->count() && $criterias->count() > 0) {
+                    $completedJudges++;
+                }
+            }
+            
             $results[] = [
                 'contestant'    => $contestant,
                 'total_score'   => $totalWeightedScore,
@@ -94,6 +106,8 @@ class TabulationController extends Controller
                 'is_overridden' => $isOverridden,
                 'message'       => $tabulationRecord->message ?? null,
                 'has_scores'    => $hasScores,
+                'completed_judges' => $completedJudges,
+                'total_assigned_judges' => $totalAssignedJudges,
             ];
         }
 
@@ -178,8 +192,10 @@ class TabulationController extends Controller
         $adminName = $request->input('admin_name');
         $judges = $request->input('judges', []);
 
+        $orientation = count($criterias) > 3 ? 'landscape' : 'portrait';
+
         $pdf = Pdf::loadView('admin.tabulation.print', compact('event', 'results', 'criterias', 'adminName', 'judges', 'eventJudges'))
-            ->setPaper('a4', 'portrait');
+            ->setPaper('a4', $orientation);
 
         $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . '_Overall_Results.pdf';
         
@@ -218,7 +234,7 @@ class TabulationController extends Controller
         // Compute results but filter ONLY for this judge
         [$results, $criterias, $eventJudges] = $this->computeResults($event, null, $judge->id);
 
-        $adminName = \Illuminate\Support\Facades\Auth::user()->name; // Auto-fill admin name
+        $adminName = Auth::user()->name; // Auto-fill admin name
 
         $pdf = Pdf::loadView('admin.tabulation.print-judge', compact('event', 'judge', 'results', 'criterias', 'adminName'))
             ->setPaper('a4', 'portrait');
@@ -401,8 +417,8 @@ class TabulationController extends Controller
     // Public index - shows list of events
     public function publicIndex()
     {
-        if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isJudge()) {
-            $judge = \Illuminate\Support\Facades\Auth::user();
+        if (Auth::check() && Auth::user()->isJudge()) {
+            $judge = Auth::user();
             if ($judge->event_id) {
                 return redirect()->route('results.show', $judge->event_id);
             }
@@ -415,8 +431,8 @@ class TabulationController extends Controller
     // Public results - shows results for a specific event
     public function publicResults(Event $event)
     {
-        if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->isJudge()) {
-            if (\Illuminate\Support\Facades\Auth::user()->event_id !== $event->id) {
+        if (Auth::check() && Auth::user()->isJudge()) {
+            if (Auth::user()->event_id !== $event->id) {
                 abort(403, 'Unauthorized action.');
             }
         }

@@ -164,6 +164,53 @@
         color: #666;
         margin-bottom: 0.25rem;
     }
+
+    /* ── Loading Overlay ── */
+    #login-loading-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(4, 13, 18, 0.88);
+        backdrop-filter: blur(6px);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+    #login-loading-overlay.active { display: flex; }
+
+    .calc-box {
+        text-align: center;
+    }
+
+    .calc-spinner {
+        width: 48px;
+        height: 48px;
+        border: 3px solid rgba(255,255,255,0.12);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+        margin: 0 auto 1.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .calc-word {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: 0.5px;
+        min-height: 1.6em;
+        transition: opacity 0.3s ease;
+    }
+    .calc-word.fade { opacity: 0; }
+
+    .calc-sub {
+        font-size: 0.78rem;
+        color: rgba(255,255,255,0.35);
+        margin-top: 0.4rem;
+        letter-spacing: 0.5px;
+    }
 </style>
 
 <div class="login-page">
@@ -225,6 +272,15 @@
     </div>
 </div>
 
+<!-- Login Loading Overlay -->
+<div id="login-loading-overlay">
+    <div class="calc-box">
+        <div class="calc-spinner"></div>
+        <div class="calc-word" id="calc-word">Checking...</div>
+        <div class="calc-sub">Please wait</div>
+    </div>
+</div>
+
 <script>
 function switchTab(type) {
     document.querySelectorAll('.login-tab').forEach(tab => tab.classList.remove('active'));
@@ -255,5 +311,27 @@ function toggleLoginCode() {
         icon.classList.add('fa-eye');
     }
 }
+
+// ── Word-cycling Loader ──
+const LOAD_WORDS = ['Checking...', 'Authenticating...', 'Verifying...', 'Signing you in...', 'Almost done...'];
+let loadIdx = 0;
+
+function startCalcAnimation() {
+    document.getElementById('login-loading-overlay').classList.add('active');
+    const el = document.getElementById('calc-word');
+
+    setInterval(() => {
+        el.classList.add('fade');
+        setTimeout(() => {
+            loadIdx = (loadIdx + 1) % LOAD_WORDS.length;
+            el.textContent = LOAD_WORDS[loadIdx];
+            el.classList.remove('fade');
+        }, 300);
+    }, 1400);
+}
+
+document.getElementById('login-form').addEventListener('submit', function() {
+    startCalcAnimation();
+});
 </script>
 @endsection

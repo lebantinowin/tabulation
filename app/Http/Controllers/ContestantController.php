@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contestant;
 use App\Models\Event;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 
 class ContestantController extends Controller
@@ -68,7 +69,9 @@ class ContestantController extends Controller
             $data['image'] = $path;
         }
 
-        Contestant::create($data);
+        $contestant = Contestant::create($data);
+
+        AuditLog::log('contestant_created', "Created contestant: {$contestant->name}");
 
         return redirect()->route('contestants.index', ['event_id' => $request->event_id])
             ->with('success', 'Contestant created successfully.');
@@ -111,6 +114,8 @@ class ContestantController extends Controller
 
         $contestant->update($data);
 
+        AuditLog::log('contestant_updated', "Updated contestant: {$contestant->name}");
+
         return redirect()->route('contestants.index', ['event_id' => $request->event_id])
             ->with('success', 'Contestant updated successfully.');
     }
@@ -123,7 +128,10 @@ class ContestantController extends Controller
             \Illuminate\Support\Facades\Storage::disk('public')->delete($contestant->image);
         }
         
+        $name = $contestant->name;
         $contestant->delete();
+
+        AuditLog::log('contestant_deleted', "Deleted contestant: {$name}");
 
         return redirect()->route('contestants.index', ['event_id' => $contestant->event_id])
             ->with('success', 'Contestant deleted successfully.');

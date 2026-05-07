@@ -38,18 +38,19 @@
             <span class="badge {{ $statusClass }}" style="margin-left: 10px;">{{ $statusText }}</span>
         </p>
         </div>
-        
+    </div>
+    <div class="flex items-center gap-3">
         @auth
         @if(auth()->user()->isAdmin())
-        <span id="autoRefreshTimer" class="badge badge-secondary" style="font-size: 0.8rem; font-weight: normal; margin-left: 1rem;">
+        <span id="autoRefreshTimer" class="badge badge-secondary" style="font-size: 0.8rem; font-weight: normal;">
             <i class="fas fa-sync-alt fa-spin"></i> Refreshing in 60s
         </span>
         @endif
         @endauth
+        <a href="{{ route('results.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Events
+        </a>
     </div>
-    <a href="{{ route('results.index') }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Back to Events
-    </a>
 </div>
 
 @if(count($results) == 0)
@@ -105,82 +106,84 @@
             @endauth
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 60px; text-align: center;">Rank</th>
-                    <th>Contestant</th>
-                    @if(count($criterias) > 0)
-                        @foreach($criterias as $criteria)
-                            <th style="text-align: center;">{{ $criteria->name }}<br><small style="font-weight: 400; opacity: 0.75;">({{ $criteria->weight }}%)</small></th>
-                        @endforeach
-                    @endif
-                    <th style="text-align: center;">Overall Weighted Score</th>
-                    @auth
-                    @if(auth()->user()->isAdmin())
-                        <th style="text-align: center;">Actions</th>
-                    @endif
-                    @endauth
-                </tr>
-            </thead>
-            <tbody id="resultsTableBody">
-                @foreach($results as $result)
-                    <tr data-contestant-id="{{ $result['contestant']->id }}" style="{{ $event->current_contestant_id == $result['contestant']->id ? 'box-shadow: inset 0 0 0 2px var(--color-success); background-color: #f0fdf4;' : '' }}">
-                        <td style="text-align: center;">
-                            @if($result['rank'] == 1)
-                                <span style="display: inline-block; width: 30px; height: 30px; line-height: 30px; background: #FFD700; color: #000; border-radius: 50%; font-weight: bold;">1</span>
-                            @elseif($result['rank'] == 2)
-                                <span style="display: inline-block; width: 30px; height: 30px; line-height: 30px; background: #C0C0C0; color: #000; border-radius: 50%; font-weight: bold;">2</span>
-                            @elseif($result['rank'] == 3)
-                                <span style="display: inline-block; width: 30px; height: 30px; line-height: 30px; background: #CD7F32; color: #fff; border-radius: 50%; font-weight: bold;">3</span>
-                            @else
-                                <span style="font-weight: bold;">{{ $result['rank'] }}</span>
-                            @endif
-                        </td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 1rem;">
-                                @if($result['contestant']->image_url)
-                                    <img src="{{ $result['contestant']->image_url }}" alt="{{ $result['contestant']->name }}" class="profile-image">
-                                @else
-                                    <div class="user-avatar">
-                                        {{ substr($result['contestant']->name, 0, 1) }}
-                                    </div>
-                                @endif
-                                <div>
-                                    <strong>{{ $result['contestant']->name }}</strong>
-                                    @if($result['contestant']->number)
-                                        <br><small style="color: #666;">#{{ $result['contestant']->number }}</small>
-                                    @endif
-                                </div>
-                            </div>
-                        </td>
+        <div style="overflow-x: auto; max-width: 100%;">
+            <table style="white-space: nowrap;">
+                <thead>
+                    <tr>
+                        <th style="width: 60px; text-align: center;">Rank</th>
+                        <th>Contestant</th>
                         @if(count($criterias) > 0)
                             @foreach($criterias as $criteria)
-                                <td style="text-align: center;">
-                                    @if(count($result['criteria_scores'][$criteria->id]['scores'] ?? []) == 0)
-                                        <span class="badge badge-warning" style="background: #f39c12; color: #fff; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px;" title="Not yet scored by any judge">Pending</span>
-                                    @else
-                                        {{ number_format(($result['criteria_scores'][$criteria->id]['average'] ?? 0) * ($criteria->weight / 100), 2) }}%
-                                    @endif
-                                </td>
+                                <th style="text-align: center;">{{ $criteria->name }}<br><small style="font-weight: 400; opacity: 0.75;">({{ $criteria->weight }}%)</small></th>
                             @endforeach
                         @endif
-                        <td style="text-align: center;">
-                            <strong style="font-size: 1.1rem;">{{ number_format($result['total_score'], 2) }}%</strong>
-                        </td>
+                        <th style="text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
                         @auth
                         @if(auth()->user()->isAdmin())
-                        <td style="text-align: center; vertical-align: middle;">
-                            <button type="button" class="btn-icon" style="background: {{ $event->current_contestant_id == $result['contestant']->id ? '#22c55e' : '#64748b' }}; color: white; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; transition: background 0.2s;" title="{{ $event->current_contestant_id == $result['contestant']->id ? 'Currently Performing' : 'Set as Performing' }}" onclick="setPerforming({{ $result['contestant']->id }}, {{ $event->current_contestant_id == $result['contestant']->id ? 'true' : 'false' }})">
-                                <i class="fas fa-microphone"></i>
-                            </button>
-                        </td>
+                            <th style="text-align: center;">Actions</th>
                         @endif
                         @endauth
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody id="resultsTableBody">
+                    @foreach($results as $result)
+                        <tr data-contestant-id="{{ $result['contestant']->id }}" style="{{ $event->current_contestant_id == $result['contestant']->id ? 'box-shadow: inset 0 0 0 2px var(--color-success); background-color: #f0fdf4;' : '' }}">
+                            <td style="text-align: center;">
+                                @if($result['rank'] == 1)
+                                    <span style="display: inline-block; width: 30px; height: 30px; line-height: 30px; background: #FFD700; color: #000; border-radius: 50%; font-weight: bold;">1</span>
+                                @elseif($result['rank'] == 2)
+                                    <span style="display: inline-block; width: 30px; height: 30px; line-height: 30px; background: #C0C0C0; color: #000; border-radius: 50%; font-weight: bold;">2</span>
+                                @elseif($result['rank'] == 3)
+                                    <span style="display: inline-block; width: 30px; height: 30px; line-height: 30px; background: #CD7F32; color: #fff; border-radius: 50%; font-weight: bold;">3</span>
+                                @else
+                                    <span style="font-weight: bold;">{{ $result['rank'] }}</span>
+                                @endif
+                            </td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    @if($result['contestant']->image_url)
+                                        <img src="{{ $result['contestant']->image_url }}" alt="{{ $result['contestant']->name }}" class="profile-image">
+                                    @else
+                                        <div class="user-avatar">
+                                            {{ substr($result['contestant']->name, 0, 1) }}
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <strong>{{ $result['contestant']->name }}</strong>
+                                        @if($result['contestant']->number)
+                                            <br><small style="color: #666;">#{{ $result['contestant']->number }}</small>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
+                            @if(count($criterias) > 0)
+                                @foreach($criterias as $criteria)
+                                    <td style="text-align: center;">
+                                        @if(count($result['criteria_scores'][$criteria->id]['scores'] ?? []) == 0)
+                                            <span class="badge badge-warning" style="background: #f39c12; color: #fff; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px;" title="Not yet scored by any judge">Pending</span>
+                                        @else
+                                            {{ number_format(($result['criteria_scores'][$criteria->id]['average'] ?? 0) * ($criteria->weight / 100), 2) }}%
+                                        @endif
+                                    </td>
+                                @endforeach
+                            @endif
+                            <td style="text-align: center;">
+                                <strong style="font-size: 1.1rem;">{{ number_format($result['total_score'], 2) }}%</strong>
+                            </td>
+                            @auth
+                            @if(auth()->user()->isAdmin())
+                            <td style="text-align: center; vertical-align: middle;">
+                                <button type="button" class="btn-icon" style="background: {{ $event->current_contestant_id == $result['contestant']->id ? '#22c55e' : '#64748b' }}; color: white; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; transition: background 0.2s;" title="{{ $event->current_contestant_id == $result['contestant']->id ? 'Currently Performing' : 'Set as Performing' }}" onclick="setPerforming({{ $result['contestant']->id }}, {{ $event->current_contestant_id == $result['contestant']->id ? 'true' : 'false' }})">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </td>
+                            @endif
+                            @endauth
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 
     @if(count($criterias) > 0)

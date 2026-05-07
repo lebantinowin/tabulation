@@ -107,6 +107,7 @@
         color: #040D12;
         text-decoration: underline;
     }
+
 </style>
 
 <div class="login-page">
@@ -163,4 +164,31 @@
         </div>
     </div>
 </div>
+
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (!this.checkValidity()) {
+        return;
+    }
+    
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.style.opacity = '0.8';
+
+    const words = ['Authenticating...', 'Verifying...', 'Logging in...'];
+    let i = 0;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${words[i]}`;
+    
+    const interval = setInterval(() => {
+        i++;
+        if (i < words.length) {
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${words[i]}`;
+        } else {
+            clearInterval(interval);
+            this.submit();
+        }
+    }, 500);
+});
+</script>
 @endsection

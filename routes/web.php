@@ -69,6 +69,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Judges Management
     Route::resource('judges', JudgeController::class);
     
+    Route::get('/judges/{judge}/export-pdf', [JudgeController::class, 'exportPdf'])->name('judges.exportPdf');
+    
     // Toggle Judge Active Status
     Route::post('/judges/{judge}/toggle-active', [JudgeController::class, 'toggleActive'])->name('judges.toggleActive');
 

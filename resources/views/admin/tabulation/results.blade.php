@@ -11,6 +11,19 @@
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
+<style>
+.table-responsive {
+    overflow-x: auto;
+    max-width: 100%;
+}
+.table-responsive table {
+    white-space: nowrap;
+}
+.sticky-col-left-1 { position: sticky; left: 0; z-index: 2; background-clip: padding-box; border-right: 1px solid var(--color-border); }
+.sticky-col-left-2 { position: sticky; left: 50px; z-index: 2; background-clip: padding-box; border-right: 2px solid var(--color-border); }
+th.sticky-col-left-1, th.sticky-col-left-2 { background-color: var(--color-btn); z-index: 3; color: white; }
+</style>
+
 <div class="card">
     <form method="GET" action="{{ route('tabulation.results') }}">
         <div class="form-group" style="margin-bottom: 0;">
@@ -57,12 +70,12 @@
         </div>
     </div>
 
-    <div style="overflow-x: auto;">
+    <div class="table-responsive">
         <table>
             <thead>
                 <tr>
-                    <th>Rank</th>
-                    <th>Contestant</th>
+                    <th class="sticky-col-left-1" style="width: 50px;">Rank</th>
+                    <th class="sticky-col-left-2">Contestant</th>
                     @foreach($criterias as $criteria)
                         <th>{{ $criteria->name }}<br><small style="font-weight: 400; opacity: 0.8;">({{ $criteria->weight }}%)</small></th>
                     @endforeach
@@ -72,14 +85,20 @@
             </thead>
             <tbody id="resultsTableBody">
                 @foreach($results as $result)
-                <tr data-contestant-id="{{ $result['contestant']->id }}" style="{{ $result['is_overridden'] ? 'background-color: #fffbea;' : '' }} {{ $event->current_contestant_id == $result['contestant']->id ? 'box-shadow: inset 0 0 0 2px var(--color-success); background-color: #f0fdf4;' : '' }}">
-                    <td>
+                <tr data-contestant-id="{{ $result['contestant']->id }}" style="{{ $result['is_overridden'] ? 'background-color: #fffbea;' : '' }} {{ $event->current_contestant_id == $result['contestant']->id ? 'box-shadow: inset 0 0 0 2px var(--color-success); background-color: #f0fdf4;' : 'background-color: #ffffff;' }}">
+                    <td class="sticky-col-left-1" style="background-color: inherit;">
                         <span class="badge {{ $result['rank'] <= 3 ? 'badge-success' : 'badge-secondary' }}">#{{ $result['rank'] }}</span>
                     </td>
-                    <td>
+                    <td class="sticky-col-left-2" style="background-color: inherit;">
                         <strong>{{ $result['contestant']->name }}</strong>
                         @if($result['contestant']->number)
                             <br><small class="text-muted">#{{ $result['contestant']->number }}</small>
+                        @endif
+                        <br>
+                        @if($result['completed_judges'] == $result['total_assigned_judges'] && $result['total_assigned_judges'] > 0)
+                            <span class="badge badge-success" style="font-size: 0.65rem; margin-top: 0.25rem;"><i class="fas fa-check-circle"></i> All Judges Scored</span>
+                        @else
+                            <span class="badge badge-warning" style="font-size: 0.65rem; margin-top: 0.25rem;">Judges: {{ $result['completed_judges'] }} / {{ max(1, $result['total_assigned_judges']) }}</span>
                         @endif
                         @if($result['message'])
                             <br><small style="color: var(--color-danger);"><em>Note: {{ $result['message'] }}</em></small>

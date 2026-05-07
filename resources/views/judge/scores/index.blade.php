@@ -116,22 +116,26 @@
                     {{-- Hidden Contestant Selection --}}
                     <input type="hidden" id="sm_contestant_id" name="contestant_id">
 
-                    <div id="inlineSuccessMsg" style="display: none; background: #dcfce7; color: #166534; padding: 0.5rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.85rem;">
-                        <i class="fas fa-check-circle"></i> <span id="inlineSuccessText">Score saved successfully!</span>
+                    <div style="position: relative;" id="modalTableContainer">
+                        <div style="overflow-y: auto; max-height: 55vh; padding-right: 4px;">
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.95rem;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: var(--color-white);">
+                                    <tr>
+                                        <th style="text-align: left; padding-bottom: 0.5rem; border-bottom: 2px solid var(--color-border);">Criteria</th>
+                                        <th style="text-align: center; padding-bottom: 0.5rem; border-bottom: 2px solid var(--color-border); width: 100px;">Score</th>
+                                        <th style="text-align: center; padding-bottom: 0.5rem; border-bottom: 2px solid var(--color-border); width: 60px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modalCriteriaTableBody">
+                                    <!-- Rendered by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div id="rowSuccessOverlay" style="display: none; position: absolute; left: 0; right: 0; background: rgba(220, 252, 231, 0.95); z-index: 10; align-items: center; justify-content: center; color: #166534; font-weight: bold; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <i class="fas fa-check-circle" style="margin-right: 8px;"></i> Score auto-saved successfully.
+                        </div>
                     </div>
-
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.95rem;">
-                        <thead>
-                            <tr>
-                                <th style="text-align: left; padding-bottom: 0.5rem; border-bottom: 2px solid var(--color-border);">Criteria</th>
-                                <th style="text-align: center; padding-bottom: 0.5rem; border-bottom: 2px solid var(--color-border); width: 100px;">Score</th>
-                                <th style="text-align: center; padding-bottom: 0.5rem; border-bottom: 2px solid var(--color-border); width: 60px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="modalCriteriaTableBody">
-                            <!-- Rendered by JS -->
-                        </tbody>
-                    </table>
                 </form>
             </div>
         </div>
@@ -194,7 +198,7 @@ const eventCriterias = @json($criterias);
 
 function openScoreModal(contestantId) {
     document.getElementById('sm_contestant_id').value = contestantId || "";
-    document.getElementById('inlineSuccessMsg').style.display = 'none';
+    document.getElementById('rowSuccessOverlay').style.display = 'none';
 
     const tbody = document.getElementById('modalCriteriaTableBody');
     tbody.innerHTML = '';
@@ -206,16 +210,16 @@ function openScoreModal(contestantId) {
         const btnColor = existing ? '#f39c12' : '#22c55e';
 
         tbody.innerHTML += `
-            <tr>
+            <tr id="criteria_row_${criteria.id}">
                 <td style="padding: 0.75rem 0; border-bottom: 1px solid var(--color-border);">
                     <strong style="display: block; font-size: 1rem; margin-bottom: 0.2rem;">${criteria.name}</strong>
                     <small style="color: #666; font-weight: 500;">Max: ${criteria.max_points}</small>
                 </td>
                 <td style="padding: 0.75rem 0; border-bottom: 1px solid var(--color-border); text-align: center;">
-                    <input type="number" id="score_input_${criteria.id}" value="${scoreVal}" max="${criteria.max_points}" step="0.01" style="width: 80px; text-align: center; padding: 0.4rem; border: 1px solid var(--color-border); border-radius: 4px; font-weight: bold;" required>
+                    <input type="number" id="score_input_${criteria.id}" value="${scoreVal}" max="${criteria.max_points}" step="0.01" style="width: 80px; text-align: center; padding: 0.4rem; border: 1px solid var(--color-border); border-radius: 4px; font-weight: bold;" oninput="markUnsaved(${criteria.id})" onfocus="markUnsaved(${criteria.id})" required>
                 </td>
                 <td style="padding: 0.75rem 0; border-bottom: 1px solid var(--color-border); text-align: right;">
-                    <button type="button" class="btn-icon" style="background: ${btnColor}; color: white; width: 36px; height: 36px; border-radius: 8px;" onclick="submitSingleScore(${contestantId}, ${criteria.id}, this)">
+                    <button type="button" id="btn_submit_${criteria.id}" class="btn-icon" style="background: ${btnColor}; color: white; width: 36px; height: 36px; border-radius: 8px;" onclick="submitSingleScore(${contestantId}, ${criteria.id}, this)">
                         <i class="fas ${icon}"></i>
                     </button>
                 </td>
@@ -240,6 +244,15 @@ function openScoreModal(contestantId) {
             imgEl.style.display = 'none';
             avatar.style.display = 'flex';
             avatar.innerText = nameText.charAt(0).toUpperCase();
+        }
+
+        const badge = document.getElementById('scoreModalNumBadge');
+        const numText = row.querySelector('td:nth-child(1)').innerText.trim();
+        if (numText && numText !== '—') {
+            badge.innerText = '#' + numText;
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
         }
     }
     
@@ -277,7 +290,13 @@ function updateContestantPreview(sel) {
     }
 }
 
-// Removed Edit Modal functions as we unified into one modal
+function markUnsaved(criteriaId) {
+    const btn = document.getElementById(`btn_submit_${criteriaId}`);
+    if (btn) {
+        btn.style.background = '#22c55e'; // green check color
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+    }
+}
 
 let needsRefresh = false;
 
@@ -285,6 +304,26 @@ function closeScoreModal() {
     document.getElementById('scoreModal').classList.remove('active');
     if (needsRefresh) {
         window.location.reload();
+    }
+}
+
+function showSuccessOverlay(criteriaId, text) {
+    const row = document.getElementById(`criteria_row_${criteriaId}`);
+    const overlay = document.getElementById('rowSuccessOverlay');
+    const container = document.getElementById('modalTableContainer');
+    
+    if (row && overlay && container) {
+        const rowRect = row.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        
+        overlay.style.top = (rowRect.top - containerRect.top) + 'px';
+        overlay.style.height = rowRect.height + 'px';
+        overlay.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> ${text}`;
+        overlay.style.display = 'flex';
+        
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 1000);
     }
 }
 
@@ -303,10 +342,8 @@ function submitSingleScore(contestantId, criteriaId, btn) {
         let pending = JSON.parse(localStorage.getItem('pendingScores') || '[]');
         pending.push(data);
         localStorage.setItem('pendingScores', JSON.stringify(pending));
-        document.getElementById('inlineSuccessMsg').style.display = 'block';
-        document.getElementById('inlineSuccessMsg').style.background = '#fef08a';
-        document.getElementById('inlineSuccessMsg').style.color = '#854d0e';
-        document.getElementById('inlineSuccessText').innerHTML = 'Offline: Saved locally.';
+        
+        showSuccessOverlay(criteriaId, 'Offline: Saved locally.');
         needsRefresh = true;
         
         btn.innerHTML = '<i class="fas fa-edit"></i>';
@@ -341,10 +378,7 @@ function submitSingleScore(contestantId, criteriaId, btn) {
         btn.disabled = false;
 
         if (response.success) {
-            document.getElementById('inlineSuccessMsg').style.display = 'block';
-            document.getElementById('inlineSuccessMsg').style.background = '#dcfce7';
-            document.getElementById('inlineSuccessMsg').style.color = '#166534';
-            document.getElementById('inlineSuccessText').innerHTML = response.message;
+            showSuccessOverlay(criteriaId, response.message);
             needsRefresh = true;
 
             const existingIdx = judgeScores.findIndex(s => s.contestant_id == data.contestant_id && s.criteria_id == data.criteria_id);
@@ -480,6 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 .table-photo:hover {
+    transition-delay: 0.2s;
     transform: scale(2) translateX(10px);
     z-index: 10;
     position: relative;

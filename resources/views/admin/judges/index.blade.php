@@ -88,6 +88,9 @@
                     <a href="{{ route('judges.show', $judge->id) }}" class="btn-icon btn-icon-view" title="View Judge Details">
                         <i class="fas fa-eye"></i>
                     </a>
+                    <a href="{{ route('judges.exportPdf', $judge->id) }}" class="btn-icon" target="_blank" title="Print Credentials" style="background-color: var(--color-success); color: white;">
+                        <i class="fas fa-print"></i>
+                    </a>
                     <a href="{{ route('judges.edit', $judge->id) }}" class="btn-icon btn-icon-edit" title="Edit Judge">
                         <i class="fas fa-edit"></i>
                     </a>

@@ -52,11 +52,14 @@ class AuthController extends Controller
         // Audit log
         AuditLog::log('login', 'Judge logged in via code');
         
-        // Check if judge has accepted agreement
-        if (!$user->agreement_accepted) {
-            return redirect()->route('agreement');
-        }
+        // Flash welcome popup on dashboard
+        $request->session()->flash('login_success', true);
         
+        // If judge hasn't accepted agreement, flag it
+        if (!$user->agreement_accepted) {
+            $request->session()->flash('needs_agreement', true);
+        }
+
         return redirect()->route('judge.dashboard');
     }
 

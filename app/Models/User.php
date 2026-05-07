@@ -60,7 +60,6 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'login_code',
     ];
 
     protected function casts(): array
@@ -81,10 +80,7 @@ class User extends Authenticatable
         return $this->role === 'judge';
     }
 
-    public static function generateLoginCode()
-    {
-        return strtoupper(substr(uniqid(), -6));
-    }
+
 
     public function scores()
     {

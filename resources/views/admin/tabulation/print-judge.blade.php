@@ -172,7 +172,6 @@
         <thead>
             <tr>
                 <th class="center" style="width: 50px;">Rank</th>
-                <th style="width: 60px;">No.</th>
                 <th>Contestant Name</th>
                 @foreach($criterias as $criteria)
                     <th class="center">{{ $criteria->name }}<br><span style="font-weight:400; font-size:8pt;">({{ $criteria->weight }}%)</span></th>
@@ -194,9 +193,13 @@
                 <td class="center">
                     <span class="rank-badge">{{ $result['rank'] ?? '–' }}</span>
                 </td>
-                <td style="color:#666; font-size:9pt;">{{ $result['contestant']->number ?? '—' }}</td>
                 <td>
-                    <div class="contestant-name">{{ $result['contestant']->name }}</div>
+                    <div class="contestant-name">
+                        {{ $result['contestant']->name }}
+                        @if($result['contestant']->number)
+                            <span style="font-weight: normal; color: #555; font-size: 8pt;">(#{{ $result['contestant']->number }})</span>
+                        @endif
+                    </div>
                 </td>
                 @foreach($criterias as $criteria)
                     <td style="text-align:center;">{{ number_format(($result['criteria_scores'][$criteria->id]['average'] ?? 0) * ($criteria->weight / 100), 2) }}%</td>

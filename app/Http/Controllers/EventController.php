@@ -157,7 +157,16 @@ class EventController extends Controller
     {
         $request->validate([
             'judges' => 'required|array',
-            'judges.*' => 'exists:users,id'
+            'judges.*' => [
+                'required',
+                'exists:users,id',
+                function ($attribute, $value, $fail) {
+                    $user = \App\Models\User::find($value);
+                    if ($user && $user->role !== 'judge') {
+                        $fail('The selected user is not a judge.');
+                    }
+                },
+            ]
         ]);
 
         // First, unassign all judges from this event
@@ -197,12 +206,12 @@ class EventController extends Controller
         $contestantIds = \App\Models\Contestant::where('event_id', $event->id)->pluck('id');
         
         if ($contestantIds->isNotEmpty()) {
-            \App\Models\Score::whereIn('contestant_id', $contestantIds)->forceDelete();
+            \App\Models\Score::whereIn('contestant_id', $contestantIds)->delete();
             \App\Models\Tabulation::whereIn('contestant_id', $contestantIds)->delete();
         }
         
-        AuditLog::log('event_scores_reset', 'Reset all scores to zero for event: ' . $event->name);
-        return redirect()->back()->with('success', 'All scores for this event have been successfully reset to zero.');
+        AuditLog::log('event_scores_reset', 'Deleted all scores for event: ' . $event->name);
+        return redirect()->back()->with('success', 'All scores for this event have been successfully deleted.');
     }
 
     public function setPerforming(Request $request, Event $event)

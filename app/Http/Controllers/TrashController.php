@@ -16,7 +16,11 @@ class TrashController extends Controller
         $deletedEvents = Event::onlyTrashed()->get();
         $deletedContestants = Contestant::onlyTrashed()->with('event')->get();
         $deletedJudges = User::onlyTrashed()->where('role', 'judge')->get();
-        $deletedScores = Score::onlyTrashed()->with(['contestant', 'criteria', 'judge'])->get();
+        $deletedScores = Score::onlyTrashed()->with([
+            'contestant' => function($q) { $q->withTrashed(); },
+            'criteria',
+            'judge' => function($q) { $q->withTrashed(); }
+        ])->get();
 
         return view('admin.trash.index', compact(
             'deletedEvents', 
@@ -62,7 +66,7 @@ class TrashController extends Controller
 
     public function restoreJudge($id)
     {
-        $judge = User::onlyTrashed()->findOrFail($id);
+        $judge = User::onlyTrashed()->where('role', 'judge')->findOrFail($id);
         $judge->restore();
         AuditLog::log('judge_restored', "Restored judge: {$judge->name}");
         return back()->with('success', 'Judge restored successfully.');
@@ -70,7 +74,7 @@ class TrashController extends Controller
 
     public function forceDeleteJudge($id)
     {
-        $judge = User::onlyTrashed()->findOrFail($id);
+        $judge = User::onlyTrashed()->where('role', 'judge')->findOrFail($id);
         $name = $judge->name;
         $judge->forceDelete();
         AuditLog::log('judge_force_deleted', "Permanently deleted judge: {$name}");

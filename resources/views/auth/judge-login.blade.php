@@ -70,6 +70,7 @@
         font-size: 1.5rem !important;
         font-weight: bold;
     }
+
 </style>
 
 <div class="login-page">
@@ -121,9 +122,38 @@
 </div>
 
 <script>
-// Auto-uppercase the login code
 document.getElementById('login_code')?.addEventListener('input', function() {
     this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+});
+
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (!this.checkValidity()) {
+        return;
+    }
+    
+    const codeInput = document.getElementById('login_code');
+    if (codeInput && codeInput.value.length < 6) {
+        return;
+    }
+
+    e.preventDefault();
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.style.opacity = '0.8';
+
+    const words = ['Authenticating...', 'Verifying...', 'Logging in...'];
+    let i = 0;
+    btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${words[i]}`;
+    
+    const interval = setInterval(() => {
+        i++;
+        if (i < words.length) {
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${words[i]}`;
+        } else {
+            clearInterval(interval);
+            this.submit();
+        }
+    }, 500);
 });
 </script>
 @endsection

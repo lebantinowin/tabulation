@@ -5,7 +5,11 @@
 @section('content')
 <div class="page-header">
     <h1>Edit Criteria</h1>
-    <a href="{{ route('criteria.index') }}" class="btn">Back to List</a>
+    @if($criteria->event_id)
+        <a href="{{ route('events.show', $criteria->event_id) }}#criteria" class="btn">Back to Event</a>
+    @else
+        <a href="{{ route('events.index') }}" class="btn">Back to Events</a>
+    @endif
 </div>
 
 <div class="card">
@@ -47,6 +51,10 @@
         
         <div class="actions" style="margin-top: 1.5rem;">
             <button type="submit" class="btn btn-primary">Update Criteria</button>
-            <a href="{{ route('criteria.index') }}" class="btn btn-secondary">Cancel</a>
+            @if($criteria->event_id)
+                <a href="{{ route('events.show', $criteria->event_id) }}#criteria" class="btn btn-secondary">Cancel</a>
+            @else
+                <a href="{{ route('events.index') }}" class="btn btn-secondary">Cancel</a>
+            @endif
         </div>
 @endsection

@@ -10,12 +10,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class JudgeController extends Controller
 {
     public function dashboard()
     {
         $judge = Auth::user();
+        
+        if (!$judge->agreement_accepted && !session()->has('login_success')) {
+            return redirect()->route('agreement');
+        }
+
         $event = $judge->event_id ? Event::find($judge->event_id) : null;
         $contestants = $event ? Contestant::where('event_id', $event->id)->get() : collect();
         
@@ -206,6 +212,22 @@ class JudgeController extends Controller
             : 'Judge deactivated successfully. They can no longer log in.';
 
         return redirect()->back()->with('success', $message);
+    }
+
+    public function exportPdf(User $judge)
+    {
+        if ($judge->role !== 'judge') {
+            abort(404);
+        }
+
+        $event = $judge->event_id ? Event::find($judge->event_id) : null;
+
+        $pdf = Pdf::loadView('admin.judges.pdf', compact('judge', 'event'))
+                  ->setPaper('A4', 'portrait');
+
+        AuditLog::log('judge_pdf_export', "Exported PDF credentials for Judge {$judge->name}");
+
+        return $pdf->stream('Judge_Credentials_' . Str::slug($judge->name) . '.pdf');
     }
 
     private function generateUniqueLoginCode()

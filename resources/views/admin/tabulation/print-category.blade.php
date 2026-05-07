@@ -205,7 +205,6 @@
         <thead>
             <tr>
                 <th class="center" style="width: 50px;">Rank</th>
-                <th style="width: 60px;">No.</th>
                 <th>Contestant Name</th>
                 @if(isset($eventJudges) && $eventJudges->count() > 0)
                     @foreach($eventJudges as $j)
@@ -230,9 +229,13 @@
                 <td style="text-align:center;">
                     <span class="rank-badge">{{ $rank }}</span>
                 </td>
-                <td style="color:#666; font-size:9pt;">#{{ $row['contestant']->number ?? '—' }}</td>
                 <td>
-                    <div class="contestant-name">{{ $row['contestant']->name }}</div>
+                    <div class="contestant-name">
+                        {{ $row['contestant']->name }}
+                        @if($row['contestant']->number)
+                            <span style="font-weight: normal; color: #555; font-size: 8pt;">(#{{ $row['contestant']->number }})</span>
+                        @endif
+                    </div>
                 </td>
                 @if(isset($eventJudges) && $eventJudges->count() > 0)
                     @foreach($eventJudges as $j)

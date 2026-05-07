@@ -16,6 +16,8 @@ class Score extends Model
         'judge_id',
         'score',
         'remarks',
+        'is_locked',
+        'locked_at',
     ];
 
     public function contestant()

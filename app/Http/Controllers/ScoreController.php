@@ -191,8 +191,9 @@ class ScoreController extends Controller
             return back()->with('error', 'Cannot edit a locked score.');
         }
 
-        $contestants = Contestant::all();
-        $criterias = Criteria::all();
+        $eventId = $score->contestant->event_id;
+        $contestants = Contestant::where('event_id', $eventId)->get();
+        $criterias = Criteria::where('event_id', $eventId)->get();
         return view('judge.scores.edit', compact('score', 'contestants', 'criterias'));
     }
 
