@@ -64,6 +64,69 @@
         </div>
     @endif
 
+    @auth
+    @if(auth()->user()->isAdmin())
+    <!-- Judges Progress Table -->
+    <div class="mb-4">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem;"><i class="fas fa-tasks text-muted"></i> Judges' Progress</h3>
+        <div class="table-responsive" style="padding-bottom: 0; box-shadow: none; border: 1px solid var(--color-border); background: var(--color-white); border-radius: 12px; overflow: hidden;">
+            <table style="box-shadow: none; border-radius: 0; margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th>Judge</th>
+                        <th style="text-align: center;">Progress</th>
+                        <th style="text-align: center;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $totalContestants = count($results);
+                        $totalCriteria = count($criterias);
+                    @endphp
+                    @foreach($judges as $judge)
+                        @php
+                            $completed = 0;
+                            if($totalCriteria > 0) {
+                                foreach($results as $result) {
+                                    $judgeScores = $result['scores']->where('judge_id', $judge->id)->count();
+                                    if($judgeScores >= $totalCriteria) {
+                                        $completed++;
+                                    }
+                                }
+                            }
+                            $percent = $totalContestants > 0 ? round(($completed / $totalContestants) * 100) : 0;
+                        @endphp
+                        <tr>
+                            <td>
+                                <strong>{{ $judge->judge_number ? 'Judge ' . $judge->judge_number . ' - ' : '' }}{{ $judge->name }}</strong>
+                            </td>
+                            <td style="text-align: center;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                    <div style="flex-grow: 1; max-width: 200px; background: rgba(0,0,0,0.05); height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
+                                        <div style="width: {{ $percent }}%; height: 100%; background: {{ $percent == 100 ? 'var(--color-success)' : 'var(--color-warning)' }};"></div>
+                                    </div>
+                                    <span style="font-weight: 600; font-size: 0.9rem; min-width: 40px;">{{ $completed }} / {{ $totalContestants }}</span>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                @if($completed == $totalContestants && $totalContestants > 0)
+                                    <span class="badge badge-success">Completed</span>
+                                @else
+                                    <span class="badge badge-warning">In Progress</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                    @if(count($judges) == 0)
+                        <tr><td colspan="3" class="text-center text-muted">No judges assigned to this event.</td></tr>
+                    @endif
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+    @endauth
+
     <div class="card">
         <div class="flex justify-between items-center mb-4" style="flex-wrap: wrap; gap: 1rem;">
             <h2 style="margin-bottom: 0;">Overall Rankings</h2>
@@ -106,29 +169,74 @@
             @endauth
         </div>
 
-        <div style="overflow-x: auto; max-width: 100%;">
-            <table style="white-space: nowrap;">
+        <style>
+        .table-responsive {
+            overflow-x: auto;
+            max-width: 100%;
+            padding-bottom: 12px;
+        }
+        .table-responsive::-webkit-scrollbar {
+            height: 12px;
+        }
+        .table-responsive::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 8px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: var(--color-secondary);
+            border-radius: 8px;
+            border: 3px solid var(--color-white);
+        }
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: var(--color-btn);
+        }
+        .table-responsive table {
+            white-space: nowrap;
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: visible !important;
+        }
+        .sticky-col-left-1 { position: sticky; left: 0; z-index: 2; background-clip: padding-box; border-right: 1px solid var(--color-border); }
+        .sticky-col-left-2 { position: sticky; left: 60px; z-index: 2; background-clip: padding-box; border-right: 2px solid var(--color-border); box-shadow: 5px 0 8px -4px rgba(0,0,0,0.08); }
+        .sticky-col-right-2 { position: sticky; right: 80px; z-index: 2; background-clip: padding-box; border-left: 2px solid var(--color-border); box-shadow: -5px 0 8px -4px rgba(0,0,0,0.08); }
+        .sticky-col-right-1 { position: sticky; right: 0; z-index: 2; background-clip: padding-box; border-left: 1px solid var(--color-border); }
+        .sticky-col-right-only { position: sticky; right: 0; z-index: 2; background-clip: padding-box; border-left: 2px solid var(--color-border); box-shadow: -5px 0 8px -4px rgba(0,0,0,0.08); }
+
+        th.sticky-col-left-1, th.sticky-col-left-2, 
+        th.sticky-col-right-2, th.sticky-col-right-1, th.sticky-col-right-only {
+            background-color: var(--color-btn);
+            z-index: 3;
+            color: white;
+        }
+        </style>
+
+        <div class="table-responsive">
+            <table>
                 <thead>
                     <tr>
-                        <th style="width: 60px; text-align: center;">Rank</th>
-                        <th>Contestant</th>
+                        <th class="sticky-col-left-1" style="width: 60px; min-width: 60px; text-align: center;">Rank</th>
+                        <th class="sticky-col-left-2" style="width: 250px; min-width: 250px;">Contestant</th>
                         @if(count($criterias) > 0)
                             @foreach($criterias as $criteria)
                                 <th style="text-align: center;">{{ $criteria->name }}<br><small style="font-weight: 400; opacity: 0.75;">({{ $criteria->weight }}%)</small></th>
                             @endforeach
                         @endif
-                        <th style="text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
                         @auth
                         @if(auth()->user()->isAdmin())
-                            <th style="text-align: center;">Actions</th>
+                            <th class="sticky-col-right-2" style="width: 100px; min-width: 100px; text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
+                            <th class="sticky-col-right-1" style="width: 80px; min-width: 80px; text-align: center;">Actions</th>
+                        @else
+                            <th class="sticky-col-right-only" style="width: 100px; min-width: 100px; text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
                         @endif
+                        @else
+                            <th class="sticky-col-right-only" style="width: 100px; min-width: 100px; text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
                         @endauth
                     </tr>
                 </thead>
                 <tbody id="resultsTableBody">
                     @foreach($results as $result)
-                        <tr data-contestant-id="{{ $result['contestant']->id }}" style="{{ $event->current_contestant_id == $result['contestant']->id ? 'box-shadow: inset 0 0 0 2px var(--color-success); background-color: #f0fdf4;' : '' }}">
-                            <td style="text-align: center;">
+                        <tr data-contestant-id="{{ $result['contestant']->id }}" style="{{ $event->current_contestant_id == $result['contestant']->id ? 'box-shadow: inset 0 0 0 2px var(--color-success); background-color: #f0fdf4;' : 'background-color: #ffffff;' }}">
+                            <td class="sticky-col-left-1" style="background-color: inherit; text-align: center;">
                                 @if($result['rank'] == 1)
                                     <span style="display: inline-block; width: 30px; height: 30px; line-height: 30px; background: #FFD700; color: #000; border-radius: 50%; font-weight: bold;">1</span>
                                 @elseif($result['rank'] == 2)
@@ -139,7 +247,7 @@
                                     <span style="font-weight: bold;">{{ $result['rank'] }}</span>
                                 @endif
                             </td>
-                            <td>
+                            <td class="sticky-col-left-2" style="background-color: inherit;">
                                 <div style="display: flex; align-items: center; gap: 1rem;">
                                     @if($result['contestant']->image_url)
                                         <img src="{{ $result['contestant']->image_url }}" alt="{{ $result['contestant']->name }}" class="profile-image">
@@ -167,17 +275,25 @@
                                     </td>
                                 @endforeach
                             @endif
-                            <td style="text-align: center;">
-                                <strong style="font-size: 1.1rem;">{{ number_format($result['total_score'], 2) }}%</strong>
-                            </td>
                             @auth
                             @if(auth()->user()->isAdmin())
-                            <td style="text-align: center; vertical-align: middle;">
+                            <td class="sticky-col-right-2" style="background-color: inherit; text-align: center;">
+                                <strong style="font-size: 1.1rem;">{{ number_format($result['total_score'], 2) }}%</strong>
+                            </td>
+                            <td class="sticky-col-right-1" style="background-color: inherit; text-align: center; vertical-align: middle;">
                                 <button type="button" class="btn-icon" style="background: {{ $event->current_contestant_id == $result['contestant']->id ? '#22c55e' : '#64748b' }}; color: white; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; transition: background 0.2s;" title="{{ $event->current_contestant_id == $result['contestant']->id ? 'Currently Performing' : 'Set as Performing' }}" onclick="setPerforming({{ $result['contestant']->id }}, {{ $event->current_contestant_id == $result['contestant']->id ? 'true' : 'false' }})">
                                     <i class="fas fa-microphone"></i>
                                 </button>
                             </td>
+                            @else
+                            <td class="sticky-col-right-only" style="background-color: inherit; text-align: center;">
+                                <strong style="font-size: 1.1rem;">{{ number_format($result['total_score'], 2) }}%</strong>
+                            </td>
                             @endif
+                            @else
+                            <td class="sticky-col-right-only" style="background-color: inherit; text-align: center;">
+                                <strong style="font-size: 1.1rem;">{{ number_format($result['total_score'], 2) }}%</strong>
+                            </td>
                             @endauth
                         </tr>
                     @endforeach

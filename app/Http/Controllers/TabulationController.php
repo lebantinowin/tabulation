@@ -155,9 +155,8 @@ class TabulationController extends Controller
         // Merge: scored first, then unscored
         $results = array_values(array_merge($scored, $unscored));
 
-        // Get all judges who have scored in this event, ordered by their assigned number
-        $judgeIds = $allScores->pluck('judge_id')->unique();
-        $judges = User::whereIn('id', $judgeIds)->orderBy('judge_number')->orderBy('name')->get();
+        // Get all judges assigned to this event
+        $judges = User::where('role', 'judge')->where('event_id', $event->id)->orderBy('judge_number')->orderBy('name')->get();
 
         return [$results, $criterias, $judges];
     }

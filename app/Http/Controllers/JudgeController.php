@@ -17,10 +17,6 @@ class JudgeController extends Controller
     public function dashboard()
     {
         $judge = Auth::user();
-        
-        if (!$judge->agreement_accepted && !session()->has('login_success')) {
-            return redirect()->route('agreement');
-        }
 
         $event = $judge->event_id ? Event::find($judge->event_id) : null;
         $contestants = $event ? Contestant::where('event_id', $event->id)->get() : collect();

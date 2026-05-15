@@ -314,6 +314,68 @@
 </div>
 @endif
 
+@if(!$judge->agreement_accepted)
+<style>
+#agreement-overlay {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(4, 13, 18, 0.85);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    opacity: {{ Session::has('login_success') ? '0' : '1' }};
+    pointer-events: {{ Session::has('login_success') ? 'none' : 'auto' }};
+    transition: opacity 0.3s ease;
+}
+.agreement-popup {
+    background: #fff;
+    border-radius: 20px;
+    width: 92%;
+    max-width: 600px;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    padding: 2.5rem;
+    animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+</style>
+<div id="agreement-overlay">
+    <div class="agreement-popup">
+        <h2 class="text-center" style="margin-bottom: 0;">Judge Agreement</h2>
+        
+        <div style="margin: 2rem 0;">
+            <h3>Terms and Conditions</h3>
+            <p>As a judge in this tabulation system, you agree to:</p>
+            <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                <li>Evaluate all contestants fairly and impartially</li>
+                <li>Provide scores based on the established criteria</li>
+                <li>Maintain confidentiality of the scoring process</li>
+                <li>Submit scores within the specified timeframe</li>
+                <li>Follow all rules and guidelines set by the event organizers</li>
+            </ul>
+            
+            <p style="margin-top: 1.5rem;">By clicking "Accept Agreement", you confirm that you have read and agree to abide by these terms.</p>
+        </div>
+        
+        <form method="POST" action="{{ route('agreement.accept') }}">
+            @csrf
+            
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: flex; align-items: center; gap: 0.75rem; font-weight: normal; cursor: pointer; user-select: none;">
+                    <input type="checkbox" name="accept" required style="width: 20px; height: 20px; margin: 0; cursor: pointer;">
+                    <span style="font-size: 1.05rem;">I have read and agree to the terms and conditions</span>
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: 12px;">
+                <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i> Accept Agreement
+            </button>
+        </form>
+    </div>
+</div>
+@endif
+
 <script>
 function dismissWelcome() {
     const overlay = document.getElementById('judge-welcome-overlay');
@@ -322,8 +384,12 @@ function dismissWelcome() {
         overlay.querySelector('.welcome-popup').style.animation = 'popOut 0.3s ease forwards';
         setTimeout(() => {
             overlay.remove();
-            @if(Session::has('needs_agreement') || !$judge->agreement_accepted)
-                window.location.href = "{{ route('agreement') }}";
+            @if(!$judge->agreement_accepted)
+                const agreeOverlay = document.getElementById('agreement-overlay');
+                if (agreeOverlay) {
+                    agreeOverlay.style.opacity = '1';
+                    agreeOverlay.style.pointerEvents = 'auto';
+                }
             @endif
         }, 320);
     }

@@ -15,15 +15,32 @@
 .table-responsive {
     overflow-x: auto;
     max-width: 100%;
+    padding-bottom: 12px;
+}
+.table-responsive::-webkit-scrollbar {
+    height: 12px;
+}
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 8px;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+    background: var(--color-secondary);
+    border-radius: 8px;
+    border: 3px solid var(--color-white);
+}
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: var(--color-btn);
 }
 .table-responsive table {
     white-space: nowrap;
     border-collapse: separate;
     border-spacing: 0;
+    overflow: visible !important;
 }
 .sticky-col-left-1 { position: sticky; left: 0; z-index: 2; background-clip: padding-box; border-right: 1px solid var(--color-border); }
-.sticky-col-left-2 { position: sticky; left: 60px; z-index: 2; background-clip: padding-box; border-right: 2px solid var(--color-border); }
-.sticky-col-right-2 { position: sticky; right: 100px; z-index: 2; background-clip: padding-box; border-left: 2px solid var(--color-border); }
+.sticky-col-left-2 { position: sticky; left: 60px; z-index: 2; background-clip: padding-box; border-right: 2px solid var(--color-border); box-shadow: 5px 0 8px -4px rgba(0,0,0,0.08); }
+.sticky-col-right-2 { position: sticky; right: 100px; z-index: 2; background-clip: padding-box; border-left: 2px solid var(--color-border); box-shadow: -5px 0 8px -4px rgba(0,0,0,0.08); }
 .sticky-col-right-1 { position: sticky; right: 0; z-index: 2; background-clip: padding-box; border-left: 1px solid var(--color-border); }
 th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col-right-1 { background-color: var(--color-btn); z-index: 3; color: white; }
 </style>
@@ -71,6 +88,65 @@ th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col
                     </div>
                 </div>
             @endif
+        </div>
+    </div>
+
+    <!-- Judges Progress Table -->
+    <div class="mb-4">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem;"><i class="fas fa-tasks text-muted"></i> Judges' Progress</h3>
+        <div class="table-responsive" style="padding-bottom: 0; box-shadow: none; border: 1px solid var(--color-border);">
+            <table style="box-shadow: none; border-radius: 0;">
+                <thead>
+                    <tr>
+                        <th>Judge</th>
+                        <th style="text-align: center;">Progress</th>
+                        <th style="text-align: center;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $totalContestants = count($results);
+                        $totalCriteria = count($criterias);
+                    @endphp
+                    @foreach($judges as $judge)
+                        @php
+                            $completed = 0;
+                            if($totalCriteria > 0) {
+                                foreach($results as $result) {
+                                    $judgeScores = $result['scores']->where('judge_id', $judge->id)->count();
+                                    if($judgeScores >= $totalCriteria) {
+                                        $completed++;
+                                    }
+                                }
+                            }
+                            $percent = $totalContestants > 0 ? round(($completed / $totalContestants) * 100) : 0;
+                        @endphp
+                        <tr>
+                            <td>
+                                <strong>{{ $judge->judge_number ? 'Judge ' . $judge->judge_number . ' - ' : '' }}{{ $judge->name }}</strong>
+                            </td>
+                            <td style="text-align: center;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                    <div style="flex-grow: 1; max-width: 200px; background: rgba(0,0,0,0.05); height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
+                                        <div style="width: {{ $percent }}%; height: 100%; background: {{ $percent == 100 ? 'var(--color-success)' : 'var(--color-warning)' }};"></div>
+                                    </div>
+                                    <span style="font-weight: 600; font-size: 0.9rem; min-width: 40px;">{{ $completed }} / {{ $totalContestants }}</span>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                @if($completed == $totalContestants && $totalContestants > 0)
+                                    <span class="badge badge-success">Completed</span>
+                                @else
+                                    <span class="badge badge-warning">In Progress</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                    @if(count($judges) == 0)
+                        <tr><td colspan="3" class="text-center text-muted">No judges assigned to this event.</td></tr>
+                    @endif
+                </tbody>
+            </table>
         </div>
     </div>
 
