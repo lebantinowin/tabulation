@@ -18,10 +18,14 @@
 }
 .table-responsive table {
     white-space: nowrap;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 .sticky-col-left-1 { position: sticky; left: 0; z-index: 2; background-clip: padding-box; border-right: 1px solid var(--color-border); }
-.sticky-col-left-2 { position: sticky; left: 50px; z-index: 2; background-clip: padding-box; border-right: 2px solid var(--color-border); }
-th.sticky-col-left-1, th.sticky-col-left-2 { background-color: var(--color-btn); z-index: 3; color: white; }
+.sticky-col-left-2 { position: sticky; left: 60px; z-index: 2; background-clip: padding-box; border-right: 2px solid var(--color-border); }
+.sticky-col-right-2 { position: sticky; right: 100px; z-index: 2; background-clip: padding-box; border-left: 2px solid var(--color-border); }
+.sticky-col-right-1 { position: sticky; right: 0; z-index: 2; background-clip: padding-box; border-left: 1px solid var(--color-border); }
+th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col-right-1 { background-color: var(--color-btn); z-index: 3; color: white; }
 </style>
 
 <div class="card">
@@ -74,19 +78,19 @@ th.sticky-col-left-1, th.sticky-col-left-2 { background-color: var(--color-btn);
         <table>
             <thead>
                 <tr>
-                    <th class="sticky-col-left-1" style="width: 50px;">Rank</th>
-                    <th class="sticky-col-left-2">Contestant</th>
+                    <th class="sticky-col-left-1" style="width: 60px; min-width: 60px;">Rank</th>
+                    <th class="sticky-col-left-2" style="width: 250px; min-width: 250px;">Contestant</th>
                     @foreach($criterias as $criteria)
                         <th>{{ $criteria->name }}<br><small style="font-weight: 400; opacity: 0.8;">({{ $criteria->weight }}%)</small></th>
                     @endforeach
-                    <th>Total Score</th>
-                    <th>Actions</th>
+                    <th class="sticky-col-right-2" style="width: 100px; min-width: 100px; text-align: center;">Total Score</th>
+                    <th class="sticky-col-right-1" style="width: 100px; min-width: 100px; text-align: center;">Actions</th>
                 </tr>
             </thead>
             <tbody id="resultsTableBody">
                 @foreach($results as $result)
                 <tr data-contestant-id="{{ $result['contestant']->id }}" style="{{ $result['is_overridden'] ? 'background-color: #fffbea;' : '' }} {{ $event->current_contestant_id == $result['contestant']->id ? 'box-shadow: inset 0 0 0 2px var(--color-success); background-color: #f0fdf4;' : 'background-color: #ffffff;' }}">
-                    <td class="sticky-col-left-1" style="background-color: inherit;">
+                    <td class="sticky-col-left-1" style="background-color: inherit; text-align: center;">
                         <span class="badge {{ $result['rank'] <= 3 ? 'badge-success' : 'badge-secondary' }}">#{{ $result['rank'] }}</span>
                     </td>
                     <td class="sticky-col-left-2" style="background-color: inherit;">
@@ -105,21 +109,23 @@ th.sticky-col-left-1, th.sticky-col-left-2 { background-color: var(--color-btn);
                         @endif
                     </td>
                     @foreach($criterias as $criteria)
-                        <td>{{ number_format($result['criteria_scores'][$criteria->id]['average'] ?? 0, 2) }}</td>
+                        <td style="text-align: center;">{{ number_format($result['criteria_scores'][$criteria->id]['average'] ?? 0, 2) }}</td>
                     @endforeach
-                    <td>
-                        <strong>{{ number_format($result['total_score'], 2) }}</strong>
+                    <td class="sticky-col-right-2" style="background-color: inherit; text-align: center;">
+                        <strong style="font-size: 1.1rem;">{{ number_format($result['total_score'], 2) }}</strong>
                         @if($result['is_overridden'])
                             <br><span class="badge badge-warning" style="font-size: 0.7rem;">Overridden</span>
                         @endif
                     </td>
-                    <td style="display: flex; gap: 0.5rem; align-items: center;">
-                        <button type="button" class="btn-icon btn-icon-edit" title="Override Score / Add Note" onclick="openOverrideModal({{ $result['contestant']->id }}, '{{ addslashes($result['contestant']->name) }}', {{ $result['total_score'] }}, '{{ addslashes($result['message'] ?? '') }}')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button" class="btn-icon" style="background: {{ $event->current_contestant_id == $result['contestant']->id ? '#22c55e' : '#64748b' }}; color: white; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; transition: background 0.2s;" title="{{ $event->current_contestant_id == $result['contestant']->id ? 'Currently Performing' : 'Set as Performing' }}" onclick="setPerforming({{ $result['contestant']->id }})">
-                            <i class="fas fa-microphone"></i>
-                        </button>
+                    <td class="sticky-col-right-1" style="background-color: inherit; text-align: center;">
+                        <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+                            <button type="button" class="btn-icon btn-icon-edit" title="Override Score / Add Note" onclick="openOverrideModal({{ $result['contestant']->id }}, '{{ addslashes($result['contestant']->name) }}', {{ $result['total_score'] }}, '{{ addslashes($result['message'] ?? '') }}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn-icon" style="background: {{ $event->current_contestant_id == $result['contestant']->id ? '#22c55e' : '#64748b' }}; color: white; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; transition: background 0.2s;" title="{{ $event->current_contestant_id == $result['contestant']->id ? 'Currently Performing' : 'Set as Performing' }}" onclick="setPerforming({{ $result['contestant']->id }})">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 @endforeach

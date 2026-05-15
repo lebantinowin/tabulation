@@ -322,7 +322,7 @@ function dismissWelcome() {
         overlay.querySelector('.welcome-popup').style.animation = 'popOut 0.3s ease forwards';
         setTimeout(() => {
             overlay.remove();
-            @if(Session::has('needs_agreement') || !$wJudge->agreement_accepted)
+            @if(Session::has('needs_agreement') || !$judge->agreement_accepted)
                 window.location.href = "{{ route('agreement') }}";
             @endif
         }, 320);
