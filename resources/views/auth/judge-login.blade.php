@@ -91,6 +91,16 @@
         color: #333;
     }
 
+    /* Hide native browser password reveal buttons (Edge, IE, Chrome) */
+    input[type="password"]::-ms-reveal,
+    input[type="password"]::-ms-clear,
+    input[type="password"]::-webkit-credentials-auto-fill-button,
+    input[type="password"]::-webkit-contacts-auto-fill-button {
+        display: none !important;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
     .step-container {
         display: none;
         animation: fadeIn 0.3s ease;
