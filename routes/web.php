@@ -99,7 +99,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 // Superadmin Management (superadmin only)
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
-    Route::resource('system-admins', App\Http\Controllers\SystemAdminController::class)->except(['edit', 'update']);
+    Route::resource('system-admins', App\Http\Controllers\SystemAdminController::class)
+        ->except(['edit', 'update'])
+        ->parameters(['system-admins' => 'id']);
     Route::post('/system-admins/{id}/toggle-active', [App\Http\Controllers\SystemAdminController::class, 'toggleActive'])->name('system-admins.toggleActive');
     Route::post('/system-admins/reports/{id}/read', [App\Http\Controllers\SystemAdminController::class, 'markReportRead'])->name('system-admins.reports.read');
 });

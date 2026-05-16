@@ -120,6 +120,8 @@ class SystemAdminController extends Controller
         $user->password_changed = true;
         $user->save();
 
+        AuditLog::log('admin_password_set', "Admin account setup completed for: {$user->name} ({$user->email})");
+
         return redirect()->route('admin.login')->with('success', 'Password set successfully! You can now login.');
     }
 }
