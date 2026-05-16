@@ -14,7 +14,11 @@ class RoleMiddleware
             return redirect('login');
         }
 
-        if ($request->user()->role !== $role) {
+        $userRole = $request->user()->role;
+        
+        if ($role === 'admin' && $userRole === 'superadmin') {
+            // Superadmins can do everything an admin can do
+        } elseif ($userRole !== $role) {
             abort(403, 'Unauthorized access.');
         }
 

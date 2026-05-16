@@ -821,6 +821,9 @@
                 <a href="{{ route('documents.index') }}" class="{{ request()->routeIs('documents.*') ? 'active' : '' }}" title="Documents"><i class="fas fa-folder-open" style="width: 20px; text-align: center;"></i> <span>Documents</span></a>
                 <a href="{{ route('auditLogs.index') }}" class="{{ request()->routeIs('auditLogs.*') ? 'active' : '' }}" title="Audit Logs"><i class="fas fa-clipboard-list" style="width: 20px; text-align: center;"></i> <span>Audit Logs</span></a>
                 <a href="{{ route('trash.index') }}" class="{{ request()->routeIs('trash.*') ? 'active' : '' }}" title="Recycle Bin"><i class="fas fa-trash-restore" style="width: 20px; text-align: center;"></i> <span>Recycle Bin</span></a>
+                @if(auth()->user()->isSuperAdmin())
+                    <a href="{{ route('system-admins.index') }}" class="{{ request()->routeIs('system-admins.*') ? 'active' : '' }}" title="Admins"><i class="fas fa-user-shield" style="width: 20px; text-align: center;"></i> <span>Admins</span></a>
+                @endif
             @elseif(auth()->user()->isJudge())
                 <a href="{{ route('judge.dashboard') }}" class="{{ request()->routeIs('judge.dashboard') ? 'active' : '' }}" title="Dashboard"><i class="fas fa-tachometer-alt" style="width: 20px; text-align: center;"></i> <span>Dashboard</span></a>
                 <a href="{{ route('scores.index') }}" class="{{ request()->routeIs('scores.*') ? 'active' : '' }}" title="Scores"><i class="fas fa-star" style="width: 20px; text-align: center;"></i> <span>Scores</span></a>
@@ -833,7 +836,7 @@
         
         <div class="user-info">
             <strong>{{ auth()->user()->name }}</strong>
-            <span>{{ auth()->user()->role }}</span>
+            <span>{{ auth()->user()->isSuperAdmin() ? 'Superadmin' : ucfirst(auth()->user()->role) }}</span>
         </div>
         
         <div class="logout-form">

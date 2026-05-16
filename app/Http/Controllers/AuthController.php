@@ -118,8 +118,8 @@ class AuthController extends Controller
             
             $user = Auth::user();
             
-            // Only allow admin role
-            if ($user->role !== 'admin') {
+            // Only allow admin or superadmin role
+            if (!in_array($user->role, ['admin', 'superadmin'])) {
                 Auth::logout();
                 return back()->withErrors([
                     'email' => 'Access denied. Admin credentials required.',

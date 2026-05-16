@@ -97,6 +97,11 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('auditLogs.index');
 });
 
+// Superadmin Management
+Route::middleware(['auth', 'role:superadmin'])->group(function () {
+    Route::resource('system-admins', App\Http\Controllers\SystemAdminController::class);
+});
+
 // Public Results Routes (accessible to all)
 Route::get('/results', [TabulationController::class, 'publicIndex'])->name('results.index');
 Route::get('/results/{event}', [TabulationController::class, 'publicResults'])->name('results.show');

@@ -211,7 +211,7 @@
                         <th class="center">{{ $j->judge_number ? 'Judge ' . $j->judge_number : $j->name }}</th>
                     @endforeach
                 @endif
-                <th class="right">Weighted Score</th>
+                <th class="right">WEIGHTED<br>SCORE</th>
             </tr>
         </thead>
         <tbody>
