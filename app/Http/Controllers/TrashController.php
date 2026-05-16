@@ -11,21 +11,21 @@ use Illuminate\Http\Request;
 
 class TrashController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $deletedEvents = Event::onlyTrashed()->get();
-        $deletedContestants = Contestant::onlyTrashed()->with('event')->get();
-        $deletedJudges = User::onlyTrashed()->where('role', 'judge')->get();
-        $deletedScores = Score::onlyTrashed()->with([
+        $deletedEvents      = Event::onlyTrashed()->paginate(7, ['*'], 'events_page');
+        $deletedContestants = Contestant::onlyTrashed()->with('event')->paginate(7, ['*'], 'contestants_page');
+        $deletedJudges      = User::onlyTrashed()->where('role', 'judge')->paginate(7, ['*'], 'judges_page');
+        $deletedScores      = Score::onlyTrashed()->with([
             'contestant' => function($q) { $q->withTrashed(); },
             'criteria',
-            'judge' => function($q) { $q->withTrashed(); }
-        ])->get();
+            'judge'      => function($q) { $q->withTrashed(); }
+        ])->paginate(7, ['*'], 'scores_page');
 
         return view('admin.trash.index', compact(
-            'deletedEvents', 
-            'deletedContestants', 
-            'deletedJudges', 
+            'deletedEvents',
+            'deletedContestants',
+            'deletedJudges',
             'deletedScores'
         ));
     }

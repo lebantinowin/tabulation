@@ -172,7 +172,7 @@ class TabulationController extends Controller
             return view('admin.tabulation.results', compact('event', 'results', 'criterias', 'judges'));
         }
         
-        $events = Event::where('is_archived', false)->paginate(7);
+        $events = Event::where('is_archived', false)->get();
         return view('admin.tabulation.results', compact('events'));
     }
 
@@ -423,7 +423,7 @@ class TabulationController extends Controller
             }
         }
         
-        $events = Event::where('is_archived', false)->orderBy('date', 'desc')->paginate(7);
+        $events = Event::where('is_archived', false)->orderBy('date', 'desc')->paginate(6);
         return view('results.index', compact('events'));
     }
     

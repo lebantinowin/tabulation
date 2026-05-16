@@ -54,7 +54,7 @@ class SystemAdminController extends Controller
         $admin = User::where('role', 'admin')->findOrFail($id);
         $reports = AdminReport::where('admin_id', $admin->id)
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(7);
             
         return view('admin.system-admins.show', compact('admin', 'reports'));
     }

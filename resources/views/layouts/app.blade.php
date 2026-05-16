@@ -41,6 +41,7 @@
             line-height: 1.6;
             font-size: 13px;
         }
+
         
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
@@ -165,7 +166,7 @@
             color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             padding: 0.85rem 1.5rem;
-            font-size: calc(0.95rem - 1px);
+            font-size: calc(0.95rem - 2px);
             font-weight: 500;
             transition: all 0.3s ease;
             border-left: 3px solid transparent;
@@ -177,7 +178,7 @@
         .sidebar a i {
             width: 22px;
             text-align: center;
-            font-size: calc(1.1rem - 1px);
+            font-size: calc(1.1rem - 2px);
         }
         
         .sidebar a:hover, .sidebar a.active {
@@ -801,8 +802,16 @@
             }
         }
     </style>
+    @auth
+    @if(auth()->user()->isAdmin())
+    <style>
+        /* Reduce all rem-based font sizes by ~2px for admin/superadmin */
+        html { font-size: 14px; }
+    </style>
+    @endif
+    @endauth
 </head>
-<body>
+<body class="@auth role-{{ auth()->user()->role }}@endauth">
     @auth
     <!-- Sidebar Navigation -->
     <nav class="sidebar" id="sidebar">

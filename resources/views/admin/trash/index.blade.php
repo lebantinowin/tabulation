@@ -60,6 +60,12 @@
         @else
             <p style="color: var(--color-muted);">No deleted events.</p>
         @endif
+        @if($deletedEvents->hasPages())
+        <div class="mt-4 flex justify-between items-center" style="flex-wrap: wrap; gap: 1rem;">
+            <span style="font-size: 0.85rem; color: var(--color-muted);">Showing {{ $deletedEvents->firstItem() }} to {{ $deletedEvents->lastItem() }} of {{ $deletedEvents->total() }}</span>
+            {{ $deletedEvents->appends(request()->except('events_page') + [])->links('pagination::custom') }}
+        </div>
+        @endif
     </div>
 
     <!-- Contestants Tab -->
@@ -104,6 +110,12 @@
         @else
             <p style="color: var(--color-muted);">No deleted contestants.</p>
         @endif
+        @if($deletedContestants->hasPages())
+        <div class="mt-4 flex justify-between items-center" style="flex-wrap: wrap; gap: 1rem;">
+            <span style="font-size: 0.85rem; color: var(--color-muted);">Showing {{ $deletedContestants->firstItem() }} to {{ $deletedContestants->lastItem() }} of {{ $deletedContestants->total() }}</span>
+            {{ $deletedContestants->appends(request()->except('contestants_page') + [])->links('pagination::custom') }}
+        </div>
+        @endif
     </div>
 
     <!-- Judges Tab -->
@@ -147,6 +159,12 @@
             </table>
         @else
             <p style="color: var(--color-muted);">No deleted judges.</p>
+        @endif
+        @if($deletedJudges->hasPages())
+        <div class="mt-4 flex justify-between items-center" style="flex-wrap: wrap; gap: 1rem;">
+            <span style="font-size: 0.85rem; color: var(--color-muted);">Showing {{ $deletedJudges->firstItem() }} to {{ $deletedJudges->lastItem() }} of {{ $deletedJudges->total() }}</span>
+            {{ $deletedJudges->appends(request()->except('judges_page') + [])->links('pagination::custom') }}
+        </div>
         @endif
     </div>
 
@@ -195,6 +213,12 @@
             </table>
         @else
             <p style="color: var(--color-muted);">No deleted scores.</p>
+        @endif
+        @if($deletedScores->hasPages())
+        <div class="mt-4 flex justify-between items-center" style="flex-wrap: wrap; gap: 1rem;">
+            <span style="font-size: 0.85rem; color: var(--color-muted);">Showing {{ $deletedScores->firstItem() }} to {{ $deletedScores->lastItem() }} of {{ $deletedScores->total() }}</span>
+            {{ $deletedScores->appends(request()->except('scores_page') + [])->links('pagination::custom') }}
+        </div>
         @endif
     </div>
 </div>
