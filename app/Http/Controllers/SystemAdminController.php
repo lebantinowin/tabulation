@@ -44,7 +44,7 @@ class SystemAdminController extends Controller
             'password_changed' => false, // flag: must set own password on first login
         ]);
 
-        AuditLog::create(['user_id' => Auth::id(), 'action' => 'Created admin account: ' . $request->name]);
+        AuditLog::log('admin_account_created', 'Created admin account: ' . $request->name);
 
         return redirect()->route('system-admins.index')->with('success', 'Admin account created. They must set their password on first login.');
     }
@@ -65,7 +65,7 @@ class SystemAdminController extends Controller
         $name  = $admin->name;
         $admin->delete();
 
-        AuditLog::create(['user_id' => Auth::id(), 'action' => 'Deleted admin account: ' . $name]);
+        AuditLog::log('admin_account_deleted', 'Deleted admin account: ' . $name);
 
         return redirect()->route('system-admins.index')->with('success', 'Admin account deleted.');
     }
@@ -77,7 +77,7 @@ class SystemAdminController extends Controller
         $admin->save();
 
         $status = $admin->is_active ? 'activated' : 'deactivated';
-        AuditLog::create(['user_id' => Auth::id(), 'action' => "Admin account {$status}: {$admin->name}"]);
+        AuditLog::log('admin_account_status_changed', "Admin account {$status}: {$admin->name}");
 
         return redirect()->route('system-admins.index')->with('success', "Admin {$status} successfully.");
     }
