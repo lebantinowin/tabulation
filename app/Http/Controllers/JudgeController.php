@@ -42,7 +42,12 @@ class JudgeController extends Controller
         if ($selectedEventId) {
             $judgesQuery->where('event_id', $selectedEventId);
         }
-        $judges = $judgesQuery->orderBy('judge_number')->orderBy('name')->get();
+        $judges = $judgesQuery->orderBy('judge_number')->orderBy('name')->paginate(10);
+
+        // Keep the event_id in pagination links
+        if ($selectedEventId) {
+            $judges->appends(['event_id' => $selectedEventId]);
+        }
 
         return view('admin.judges.index', compact('judges', 'events', 'selectedEventId'));
     }
@@ -102,7 +107,7 @@ class JudgeController extends Controller
         AuditLog::log('judge_created', 'Created judge: ' . $judge->name);
 
         $redirect = $request->event_id
-            ? route('judges.index', ['event_id' => $request->event_id])
+            ? route('events.show', $request->event_id)
             : route('judges.index');
 
         return redirect($redirect)->with('success', 'Judge created successfully.');
@@ -171,7 +176,7 @@ class JudgeController extends Controller
         AuditLog::log('judge_updated', 'Updated judge: ' . $judge->name);
 
         $redirect = $request->event_id
-            ? route('judges.index', ['event_id' => $request->event_id])
+            ? route('events.show', $request->event_id)
             : route('judges.index');
 
         return redirect($redirect)->with('success', 'Judge updated successfully.');
@@ -189,7 +194,7 @@ class JudgeController extends Controller
         AuditLog::log('judge_deleted', 'Deleted judge: ' . $judgeName);
 
         $redirect = $judge->event_id
-            ? route('judges.index', ['event_id' => $judge->event_id])
+            ? route('events.show', $judge->event_id)
             : route('judges.index');
 
         return redirect($redirect)->with('success', 'Judge deleted successfully.');

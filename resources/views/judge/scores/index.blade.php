@@ -82,11 +82,11 @@
 
 {{-- ─── Submit Score Modal ─── --}}
 <div id="scoreModal" class="modal">
-    <div class="modal-content" style="max-width: 640px; padding: 0; overflow: hidden;">
-        <div style="display: grid; grid-template-columns: 220px 1fr;">
+    <div class="modal-content" style="max-width: 800px; padding: 0; overflow: hidden;">
+        <div style="display: grid; grid-template-columns: 280px 1fr;">
 
             {{-- Left: Contestant portrait --}}
-            <div id="scoreModalImage" style="position: relative; background: var(--color-main); min-height: 340px; display: flex; align-items: center; justify-content: center;">
+            <div id="scoreModalImage" style="position: relative; background: var(--color-main); min-height: 380px; display: flex; align-items: center; justify-content: center;">
                 <div id="scoreModalAvatarPlaceholder" class="user-avatar"
                      style="width: 80px; height: 80px; font-size: 2rem; border: none;">?</div>
                 <img id="scoreModalImg" src="" alt=""

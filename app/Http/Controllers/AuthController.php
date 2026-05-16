@@ -22,11 +22,38 @@ class AuthController extends Controller
         return view('auth.admin-login');
     }
 
+    // Verify Judge Code (AJAX step 1)
+    public function verifyCode(Request $request)
+    {
+        $request->validate([
+            'login_code' => 'required|string',
+        ]);
+
+        $user = User::where('login_code', strtoupper($request->login_code))
+                    ->where('role', 'judge')
+                    ->first();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Invalid login code.']);
+        }
+
+        if (!$user->is_active) {
+            return response()->json(['success' => false, 'message' => 'Your account has been deactivated. Please contact the admin.']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'name' => $user->name,
+            'password_changed' => (bool) $user->password_changed
+        ]);
+    }
+
     // Handle Judge Login
     public function handleLogin(Request $request)
     {
         $request->validate([
             'login_code' => 'required|string',
+            'password'   => 'required|string',
         ]);
 
         $user = User::where('login_code', strtoupper($request->login_code))
@@ -44,6 +71,21 @@ class AuthController extends Controller
             return back()->withErrors([
                 'login_code' => 'Your account has been deactivated. Please contact the admin to activate your account.',
             ])->onlyInput('login_code');
+        }
+
+        // Handle password setting or checking
+        if (!$user->password_changed) {
+            // First time login - set the password
+            $user->password = Hash::make($request->password);
+            $user->password_changed = true;
+            $user->save();
+        } else {
+            // Subsequent logins - check password
+            if (!Hash::check($request->password, $user->password)) {
+                return back()->withErrors([
+                    'password' => 'Incorrect password.',
+                ])->onlyInput('login_code');
+            }
         }
 
         Auth::login($user);

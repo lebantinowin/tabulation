@@ -174,6 +174,7 @@
             overflow-x: auto;
             max-width: 100%;
             padding-bottom: 12px;
+            scroll-behavior: smooth;
         }
         .table-responsive::-webkit-scrollbar {
             height: 12px;
@@ -195,12 +196,14 @@
             border-collapse: separate;
             border-spacing: 0;
             overflow: visible !important;
+            width: 100%;
         }
-        .sticky-col-left-1 { position: sticky; left: 0; z-index: 2; background-clip: padding-box; border-right: 1px solid var(--color-border); }
-        .sticky-col-left-2 { position: sticky; left: 60px; z-index: 2; background-clip: padding-box; border-right: 2px solid var(--color-border); box-shadow: 5px 0 8px -4px rgba(0,0,0,0.08); }
-        .sticky-col-right-2 { position: sticky; right: 80px; z-index: 2; background-clip: padding-box; border-left: 2px solid var(--color-border); box-shadow: -5px 0 8px -4px rgba(0,0,0,0.08); }
-        .sticky-col-right-1 { position: sticky; right: 0; z-index: 2; background-clip: padding-box; border-left: 1px solid var(--color-border); }
-        .sticky-col-right-only { position: sticky; right: 0; z-index: 2; background-clip: padding-box; border-left: 2px solid var(--color-border); box-shadow: -5px 0 8px -4px rgba(0,0,0,0.08); }
+        /* Fixed widths to avoid overlap */
+        .sticky-col-left-1 { position: -webkit-sticky; position: sticky; left: 0; z-index: 2; background-clip: padding-box; border-right: 1px solid var(--color-border); width: 80px; min-width: 80px; max-width: 80px; }
+        .sticky-col-left-2 { position: -webkit-sticky; position: sticky; left: 80px; z-index: 2; background-clip: padding-box; border-right: 2px solid var(--color-border); width: 250px; min-width: 250px; max-width: 250px; box-shadow: 5px 0 8px -4px rgba(0,0,0,0.08); }
+        .sticky-col-right-2 { position: -webkit-sticky; position: sticky; right: 100px; z-index: 2; background-clip: padding-box; border-left: 2px solid var(--color-border); width: 120px; min-width: 120px; max-width: 120px; box-shadow: -5px 0 8px -4px rgba(0,0,0,0.08); }
+        .sticky-col-right-1 { position: -webkit-sticky; position: sticky; right: 0; z-index: 2; background-clip: padding-box; border-left: 1px solid var(--color-border); width: 100px; min-width: 100px; max-width: 100px; }
+        .sticky-col-right-only { position: -webkit-sticky; position: sticky; right: 0; z-index: 2; background-clip: padding-box; border-left: 2px solid var(--color-border); width: 120px; min-width: 120px; max-width: 120px; box-shadow: -5px 0 8px -4px rgba(0,0,0,0.08); }
 
         th.sticky-col-left-1, th.sticky-col-left-2, 
         th.sticky-col-right-2, th.sticky-col-right-1, th.sticky-col-right-only {
@@ -208,28 +211,66 @@
             z-index: 3;
             color: white;
         }
+
+        .scroll-btns-container {
+            display: none; /* hidden by default, JS will show if scrollable */
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 8px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .scroll-btns-container:hover {
+            opacity: 1;
+        }
+        .scroll-btn {
+            background: transparent;
+            border: none;
+            color: var(--color-muted);
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .scroll-btn:hover {
+            color: var(--color-text);
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         </style>
 
-        <div class="table-responsive">
+        <div class="scroll-btns-container">
+            <button type="button" class="scroll-btn" onclick="document.getElementById('overallTableWrapper').scrollBy({left: -200, behavior: 'smooth'})">
+                <i class="fas fa-chevron-left"></i> Scroll Left
+            </button>
+            <button type="button" class="scroll-btn" onclick="document.getElementById('overallTableWrapper').scrollBy({left: 200, behavior: 'smooth'})">
+                Scroll Right <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <div class="table-responsive" id="overallTableWrapper">
             <table>
                 <thead>
                     <tr>
-                        <th class="sticky-col-left-1" style="width: 60px; min-width: 60px; text-align: center;">Rank</th>
-                        <th class="sticky-col-left-2" style="width: 250px; min-width: 250px;">Contestant</th>
+                        <th class="sticky-col-left-1" style="text-align: center;">Rank</th>
+                        <th class="sticky-col-left-2">Contestant</th>
                         @if(count($criterias) > 0)
                             @foreach($criterias as $criteria)
-                                <th style="text-align: center;">{{ $criteria->name }}<br><small style="font-weight: 400; opacity: 0.75;">({{ $criteria->weight }}%)</small></th>
+                                <th style="text-align: center; min-width: 120px;">C{{ $loop->iteration }}<br><small style="font-weight: 400; opacity: 0.75;">{{ $criteria->name }}<br>({{ $criteria->weight }}%)</small></th>
                             @endforeach
                         @endif
                         @auth
                         @if(auth()->user()->isAdmin())
-                            <th class="sticky-col-right-2" style="width: 100px; min-width: 100px; text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
-                            <th class="sticky-col-right-1" style="width: 80px; min-width: 80px; text-align: center;">Actions</th>
+                            <th class="sticky-col-right-2" style="text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
+                            <th class="sticky-col-right-1" style="text-align: center;">Actions</th>
                         @else
-                            <th class="sticky-col-right-only" style="width: 100px; min-width: 100px; text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
+                            <th class="sticky-col-right-only" style="text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
                         @endif
                         @else
-                            <th class="sticky-col-right-only" style="width: 100px; min-width: 100px; text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
+                            <th class="sticky-col-right-only" style="text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
                         @endauth
                     </tr>
                 </thead>
@@ -303,103 +344,128 @@
     </div>
 
     @if(count($criterias) > 0)
-        @foreach($criterias as $criteria)
-            <div class="card">
-                <div class="flex justify-between items-center mb-4" style="flex-wrap: wrap; gap: 1rem;">
-                    <h3 style="margin-bottom: 0;">{{ $criteria->name }} - Breakdown (Weight: {{ $criteria->weight }}%)</h3>
-
-                    @auth
-                    @if(auth()->user()->isAdmin())
-                    <button type="button" onclick="openPdfModal('{{ route('tabulation.print-category', ['criteriaId' => $criteria->id]) }}')" class="btn btn-sm" style="background: var(--color-info); padding: 0.4rem 0.8rem; font-size: 0.85rem;">
-                        <i class="fas fa-file-pdf"></i> Export PDF
+        <!-- Criteria Tabs Navigation -->
+        <ul class="nav-tabs" style="margin-top: 2rem;">
+            @foreach($criterias as $index => $criteria)
+                <li>
+                    <button class="tab-btn {{ $index == 0 ? 'active' : '' }}" onclick="switchCriteriaTab('criteria_{{ $criteria->id }}', this)">
+                        {{ $criteria->name }}
                     </button>
-                    @endif
-                    @endauth
-                </div>
+                </li>
+            @endforeach
+        </ul>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 60px; text-align: center;">Rank</th>
-                            <th>Contestant</th>
-                            @auth
-                            @if(auth()->user()->isAdmin())
-                                @foreach($judges as $judge)
-                                    <th style="text-align: center;">{{ $judge->judge_number ? 'Judge ' . $judge->judge_number : $judge->name }}</th>
-                                @endforeach
-                            @endif
-                            @endauth
-                            <th style="text-align: center;">Weighted Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php
-                            $criteriaResults = [];
-                            foreach($results as $result) {
-                                $criteriaResults[] = [
-                                    'contestant'   => $result['contestant'],
-                                    'average'      => $result['criteria_scores'][$criteria->id]['average'] ?? 0,
-                                    'total'        => $result['criteria_scores'][$criteria->id]['total'] ?? 0,
-                                    'scores_count' => count($result['criteria_scores'][$criteria->id]['scores'] ?? []),
-                                    'scores'       => $result['criteria_scores'][$criteria->id]['scores'] ?? collect(),
-                                    'weight'       => $criteria->weight,
-                                ];
-                            }
-                            usort($criteriaResults, function($a, $b) {
-                                return $b['average'] - $a['average'];
-                            });
-                        @endphp
+        <!-- Criteria Tab Contents -->
+        @foreach($criterias as $index => $criteria)
+            <div id="criteria_{{ $criteria->id }}" class="tab-content {{ $index == 0 ? 'active' : '' }}">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-4" style="flex-wrap: wrap; gap: 1rem;">
+                        <h3 style="margin-bottom: 0;">{{ $criteria->name }} - Breakdown (Weight: {{ $criteria->weight }}%)</h3>
 
-                        @foreach($criteriaResults as $index => $cr)
-                            <tr>
-                                <td style="text-align: center;">{{ $index + 1 }}</td>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 1rem;">
-                                        @if($cr['contestant']->image_url)
-                                            <img src="{{ $cr['contestant']->image_url }}" alt="{{ $cr['contestant']->name }}" class="profile-image-sm">
-                                        @else
-                                            <div class="user-avatar">
-                                                {{ substr($cr['contestant']->name, 0, 1) }}
+                        @auth
+                        @if(auth()->user()->isAdmin())
+                        <button type="button" onclick="openPdfModal('{{ route('tabulation.print-category', ['criteriaId' => $criteria->id]) }}')" class="btn btn-sm" style="background: var(--color-info); padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                        @endif
+                        @endauth
+                    </div>
+
+                    <div class="scroll-btns-container">
+                        <button type="button" class="scroll-btn" onclick="document.getElementById('criteriaTableWrapper_{{ $criteria->id }}').scrollBy({left: -200, behavior: 'smooth'})">
+                            <i class="fas fa-chevron-left"></i> Scroll Left
+                        </button>
+                        <button type="button" class="scroll-btn" onclick="document.getElementById('criteriaTableWrapper_{{ $criteria->id }}').scrollBy({left: 200, behavior: 'smooth'})">
+                            Scroll Right <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="table-responsive" id="criteriaTableWrapper_{{ $criteria->id }}">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="sticky-col-left-1" style="text-align: center;">Rank</th>
+                                    <th class="sticky-col-left-2">Contestant</th>
+                                    @auth
+                                    @if(auth()->user()->isAdmin())
+                                        @foreach($judges as $judge)
+                                            <th style="text-align: center; min-width: 40px; width: 60px; padding: 0.5rem 0.25rem;">{{ $judge->judge_number ? 'J' . $judge->judge_number : 'J' . $loop->iteration }}</th>
+                                        @endforeach
+                                    @endif
+                                    @endauth
+                                    <th class="sticky-col-right-only" style="text-align: center; line-height: 1.2;">Weighted<br>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $criteriaResults = [];
+                                    foreach($results as $result) {
+                                        $criteriaResults[] = [
+                                            'contestant'   => $result['contestant'],
+                                            'average'      => $result['criteria_scores'][$criteria->id]['average'] ?? 0,
+                                            'total'        => $result['criteria_scores'][$criteria->id]['total'] ?? 0,
+                                            'scores_count' => count($result['criteria_scores'][$criteria->id]['scores'] ?? []),
+                                            'scores'       => $result['criteria_scores'][$criteria->id]['scores'] ?? collect(),
+                                            'weight'       => $criteria->weight,
+                                        ];
+                                    }
+                                    usort($criteriaResults, function($a, $b) {
+                                        return $b['average'] <=> $a['average'];
+                                    });
+                                @endphp
+
+                                @foreach($criteriaResults as $idx => $cr)
+                                    <tr>
+                                        <td class="sticky-col-left-1" style="background-color: inherit; text-align: center;">{{ $idx + 1 }}</td>
+                                        <td class="sticky-col-left-2" style="background-color: inherit;">
+                                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                                @if($cr['contestant']->image_url)
+                                                    <img src="{{ $cr['contestant']->image_url }}" alt="{{ $cr['contestant']->name }}" class="profile-image-sm">
+                                                @else
+                                                    <div class="user-avatar">
+                                                        {{ substr($cr['contestant']->name, 0, 1) }}
+                                                    </div>
+                                                @endif
+                                                <div>
+                                                    {{ $cr['contestant']->name }}
+                                                    @if($cr['contestant']->number)
+                                                        <br><small style="color: #666;">#{{ $cr['contestant']->number }}</small>
+                                                    @endif
+                                                </div>
                                             </div>
-                                        @endif
-                                        <div>
-                                            {{ $cr['contestant']->name }}
-                                            @if($cr['contestant']->number)
-                                                <br><small style="color: #666;">#{{ $cr['contestant']->number }}</small>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </td>
+                                        </td>
 
-                                @auth
-                                @if(auth()->user()->isAdmin())
-                                    @foreach($judges as $judge)
-                                        <td style="text-align: center;">
-                                            @php
-                                                $judgeScore = $cr['scores']->where('judge_id', $judge->id)->first();
-                                            @endphp
-                                            @if($judgeScore)
-                                                <div>{{ number_format($judgeScore->score, 2) }}</div>
-                                                <small style="color: var(--color-muted); font-size: 0.75rem;">{{ number_format($judgeScore->score * ($cr['weight'] / 100), 2) }}%</small>
+                                        @auth
+                                        @if(auth()->user()->isAdmin())
+                                            @foreach($judges as $judge)
+                                                <td style="text-align: center; padding: 0.5rem 0.25rem;">
+                                                    @php
+                                                        $judgeScore = $cr['scores']->where('judge_id', $judge->id)->first();
+                                                    @endphp
+                                                    @if($judgeScore)
+                                                        <div>{{ number_format($judgeScore->score, 2) }}</div>
+                                                        <small style="color: var(--color-muted); font-size: 0.75rem;">{{ number_format($judgeScore->score * ($cr['weight'] / 100), 2) }}%</small>
+                                                    @else
+                                                        <span style="color: #ccc;">-</span>
+                                                    @endif
+                                                </td>
+                                            @endforeach
+                                        @endif
+                                        @endauth
+
+                                        <td class="sticky-col-right-only" style="background-color: inherit; text-align: center;">
+                                            @if($cr['scores_count'] == 0)
+                                                <span class="badge badge-warning" style="background: #f39c12; color: #fff; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Pending</span>
                                             @else
-                                                <span style="color: #ccc;">-</span>
+                                                <strong style="font-size: 1.05rem;">{{ number_format($cr['average'] * ($cr['weight'] / 100), 2) }}%</strong>
                                             @endif
                                         </td>
-                                    @endforeach
-                                @endif
-                                @endauth
-
-                                <td style="text-align: center;">
-                                    @if($cr['scores_count'] == 0)
-                                        <span class="badge badge-warning" style="background: #f39c12; color: #fff; font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px;">Pending</span>
-                                    @else
-                                        <strong style="font-size: 1.05rem;">{{ number_format($cr['average'] * ($cr['weight'] / 100), 2) }}%</strong>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         @endforeach
     @endif
@@ -408,6 +474,21 @@
 @include('partials.pdf_signature_modal')
 
 <script>
+function switchCriteriaTab(tabId, btnEl) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    // Remove active class from buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabId).classList.add('active');
+    btnEl.classList.add('active');
+}
+
 function toggleDropdown(id) {
     const menu = document.getElementById(id);
     const isOpen = menu.style.display !== 'none';
@@ -539,6 +620,49 @@ function refreshResultsTable() {
             });
         });
 }
+
+function updateScrollButtonsVisibility() {
+    document.querySelectorAll('.table-responsive').forEach(wrapper => {
+        const table = wrapper.querySelector('table');
+        const btnsContainer = wrapper.previousElementSibling;
+        
+        if (btnsContainer && btnsContainer.classList.contains('scroll-btns-container')) {
+            // Check if table is wider than its wrapper
+            if (table.offsetWidth > wrapper.offsetWidth) {
+                btnsContainer.style.display = 'flex';
+                
+                // Center exactly over the scrollable criteria area by padding out the sticky columns
+                const leftSticky = wrapper.querySelector('.sticky-col-left-2');
+                const rightSticky = wrapper.querySelector('.sticky-col-right-2') || wrapper.querySelector('.sticky-col-right-only');
+                
+                if (wrapper.offsetWidth > 600) {
+                    if (leftSticky) {
+                        const leftWidth = leftSticky.getBoundingClientRect().right - wrapper.getBoundingClientRect().left;
+                        btnsContainer.style.paddingLeft = Math.max(0, leftWidth) + 'px';
+                    }
+                    if (rightSticky) {
+                        const rightWidth = wrapper.getBoundingClientRect().right - rightSticky.getBoundingClientRect().left;
+                        btnsContainer.style.paddingRight = Math.max(0, rightWidth) + 'px';
+                    }
+                } else {
+                    btnsContainer.style.paddingLeft = '0px';
+                    btnsContainer.style.paddingRight = '0px';
+                }
+            } else {
+                btnsContainer.style.display = 'none';
+            }
+        }
+    });
+}
+
+window.addEventListener('load', updateScrollButtonsVisibility);
+window.addEventListener('resize', updateScrollButtonsVisibility);
+// Also update when changing tabs
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.tab-btn')) {
+        setTimeout(updateScrollButtonsVisibility, 50);
+    }
+});
 
 // Auto refresh every 60 seconds
 const REFRESH_INTERVAL = 60;

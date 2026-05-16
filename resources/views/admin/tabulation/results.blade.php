@@ -16,6 +16,7 @@
     overflow-x: auto;
     max-width: 100%;
     padding-bottom: 12px;
+    scroll-behavior: smooth; /* For smooth scrolling with buttons */
 }
 .table-responsive::-webkit-scrollbar {
     height: 12px;
@@ -37,12 +38,40 @@
     border-collapse: separate;
     border-spacing: 0;
     overflow: visible !important;
+    width: 100%;
 }
-.sticky-col-left-1 { position: sticky; left: 0; z-index: 2; background-clip: padding-box; border-right: 1px solid var(--color-border); }
-.sticky-col-left-2 { position: sticky; left: 60px; z-index: 2; background-clip: padding-box; border-right: 2px solid var(--color-border); box-shadow: 5px 0 8px -4px rgba(0,0,0,0.08); }
-.sticky-col-right-2 { position: sticky; right: 100px; z-index: 2; background-clip: padding-box; border-left: 2px solid var(--color-border); box-shadow: -5px 0 8px -4px rgba(0,0,0,0.08); }
-.sticky-col-right-1 { position: sticky; right: 0; z-index: 2; background-clip: padding-box; border-left: 1px solid var(--color-border); }
+/* Fixed widths to avoid overlap */
+.sticky-col-left-1 { position: -webkit-sticky; position: sticky; left: 0; z-index: 2; background-clip: padding-box; border-right: 1px solid var(--color-border); width: 80px; min-width: 80px; max-width: 80px; }
+.sticky-col-left-2 { position: -webkit-sticky; position: sticky; left: 80px; z-index: 2; background-clip: padding-box; border-right: 2px solid var(--color-border); width: 250px; min-width: 250px; max-width: 250px; box-shadow: 5px 0 8px -4px rgba(0,0,0,0.08); }
+.sticky-col-right-2 { position: -webkit-sticky; position: sticky; right: 120px; z-index: 2; background-clip: padding-box; border-left: 2px solid var(--color-border); width: 120px; min-width: 120px; max-width: 120px; box-shadow: -5px 0 8px -4px rgba(0,0,0,0.08); }
+.sticky-col-right-1 { position: -webkit-sticky; position: sticky; right: 0; z-index: 2; background-clip: padding-box; border-left: 1px solid var(--color-border); width: 120px; min-width: 120px; max-width: 120px; }
 th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col-right-1 { background-color: var(--color-btn); z-index: 3; color: white; }
+
+.scroll-btns-container {
+    display: none; /* hidden by default, JS will show if scrollable */
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 8px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.scroll-btns-container:hover {
+    opacity: 1;
+}
+.scroll-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-muted);
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.scroll-btn:hover {
+    color: var(--color-text);
+}
 </style>
 
 <div class="card">
@@ -150,17 +179,26 @@ th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col
         </div>
     </div>
 
-    <div class="table-responsive">
+    <div class="scroll-btns-container">
+        <button type="button" class="scroll-btn" onclick="document.getElementById('overallTableWrapper').scrollBy({left: -200, behavior: 'smooth'})">
+            <i class="fas fa-chevron-left"></i> Scroll Left
+        </button>
+        <button type="button" class="scroll-btn" onclick="document.getElementById('overallTableWrapper').scrollBy({left: 200, behavior: 'smooth'})">
+            Scroll Right <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <div class="table-responsive" id="overallTableWrapper">
         <table>
             <thead>
                 <tr>
-                    <th class="sticky-col-left-1" style="width: 60px; min-width: 60px;">Rank</th>
-                    <th class="sticky-col-left-2" style="width: 250px; min-width: 250px;">Contestant</th>
+                    <th class="sticky-col-left-1">Rank</th>
+                    <th class="sticky-col-left-2">Contestant</th>
                     @foreach($criterias as $criteria)
-                        <th>{{ $criteria->name }}<br><small style="font-weight: 400; opacity: 0.8;">({{ $criteria->weight }}%)</small></th>
+                        <th style="min-width: 120px; text-align: center;">C{{ $loop->iteration }}<br><small style="font-weight: 400; opacity: 0.8;">{{ $criteria->name }}<br>({{ $criteria->weight }}%)</small></th>
                     @endforeach
-                    <th class="sticky-col-right-2" style="width: 100px; min-width: 100px; text-align: center;">Total Score</th>
-                    <th class="sticky-col-right-1" style="width: 100px; min-width: 100px; text-align: center;">Actions</th>
+                    <th class="sticky-col-right-2" style="text-align: center;">Total Score</th>
+                    <th class="sticky-col-right-1" style="text-align: center;">Actions</th>
                 </tr>
             </thead>
             <tbody id="resultsTableBody">
@@ -339,6 +377,43 @@ th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col
                 });
             });
     }
+
+    function updateScrollButtonsVisibility() {
+        document.querySelectorAll('.table-responsive').forEach(wrapper => {
+            const table = wrapper.querySelector('table');
+            const btnsContainer = wrapper.previousElementSibling;
+            
+            if (btnsContainer && btnsContainer.classList.contains('scroll-btns-container')) {
+                // Check if table is wider than its wrapper
+                if (table.offsetWidth > wrapper.offsetWidth) {
+                    btnsContainer.style.display = 'flex';
+                    
+                    // Center exactly over the scrollable criteria area by padding out the sticky columns
+                    const leftSticky = wrapper.querySelector('.sticky-col-left-2');
+                    const rightSticky = wrapper.querySelector('.sticky-col-right-2') || wrapper.querySelector('.sticky-col-right-only');
+                    
+                    if (wrapper.offsetWidth > 600) {
+                        if (leftSticky) {
+                            const leftWidth = leftSticky.getBoundingClientRect().right - wrapper.getBoundingClientRect().left;
+                            btnsContainer.style.paddingLeft = Math.max(0, leftWidth) + 'px';
+                        }
+                        if (rightSticky) {
+                            const rightWidth = wrapper.getBoundingClientRect().right - rightSticky.getBoundingClientRect().left;
+                            btnsContainer.style.paddingRight = Math.max(0, rightWidth) + 'px';
+                        }
+                    } else {
+                        btnsContainer.style.paddingLeft = '0px';
+                        btnsContainer.style.paddingRight = '0px';
+                    }
+                } else {
+                    btnsContainer.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    window.addEventListener('load', updateScrollButtonsVisibility);
+    window.addEventListener('resize', updateScrollButtonsVisibility);
 
     // Auto refresh every 60 seconds
     const REFRESH_INTERVAL = 60;

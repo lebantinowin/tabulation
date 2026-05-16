@@ -108,6 +108,7 @@
         .signatures-wrapper {
             padding: 24px;
             margin-top: 20px;
+            page-break-inside: avoid;
         }
         
         .signatures-title {
@@ -244,20 +245,21 @@
             if (!empty($adminName)) {
                 $signatories[] = ['name' => $adminName, 'role' => 'Administrator'];
             }
-            $chunks = array_chunk($signatories, 3);
+            $cols = (isset($orientation) && $orientation == 'landscape') ? 4 : 3;
+            $chunks = array_chunk($signatories, $cols);
         @endphp
 
         @foreach($chunks as $row)
             <tr>
                 @foreach($row as $person)
-                    <td class="signature-box" style="padding-top: 50px;">
+                    <td class="signature-box" style="padding-top: 50px; width: {{ 100 / $cols }}%;">
                         <div class="signature-line"></div>
                         <div class="signature-name">{{ $person['name'] }}</div>
                         <div class="signature-role">{{ $person['role'] }}</div>
                     </td>
                 @endforeach
-                @for($i = count($row); $i < 3; $i++)
-                    <td></td>
+                @for($i = count($row); $i < $cols; $i++)
+                    <td style="width: {{ 100 / $cols }}%;"></td>
                 @endfor
             </tr>
         @endforeach

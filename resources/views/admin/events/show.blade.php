@@ -127,6 +127,7 @@
                 <th style="text-align: center;">Judge #</th>
                 <th>Email</th>
                 <th>Status</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -174,6 +175,35 @@
                     @else
                     <span class="badge badge-warning">Pending</span>
                     @endif
+                </td>
+                <td>
+                    <div class="actions">
+                        <form action="{{ route('judges.toggleActive', $judge->id) }}" method="POST" style="display: inline;" id="toggleJudgeForm{{ $judge->id }}">
+                            @csrf
+                            <button type="button"
+                                class="btn-icon {{ $judge->is_active ? 'btn-icon-delete' : 'btn-icon-view' }}"
+                                onclick="confirmForm(document.getElementById('toggleJudgeForm{{ $judge->id }}'), 'Are you sure you want to {{ $judge->is_active ? 'deactivate' : 'activate' }} this judge?', {title: '{{ $judge->is_active ? 'Deactivate' : 'Activate' }} Judge?', danger: '{{ $judge->is_active ? 'high' : 'medium' }}'})"
+                                title="{{ $judge->is_active ? 'Deactivate' : 'Activate' }} Judge">
+                                <i class="fas fa-{{ $judge->is_active ? 'ban' : 'check' }}"></i>
+                            </button>
+                        </form>
+                        <a href="{{ route('judges.show', $judge->id) }}" class="btn-icon btn-icon-view" title="View Judge Details" style="background: #040D12;">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{{ route('judges.exportPdf', $judge->id) }}" class="btn-icon" target="_blank" title="Print Credentials" style="background-color: var(--color-success); color: white;">
+                            <i class="fas fa-print"></i>
+                        </a>
+                        <a href="{{ route('judges.edit', $judge->id) }}" class="btn-icon btn-icon-edit" title="Edit Judge">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form action="{{ route('judges.destroy', $judge->id) }}" method="POST" style="display: inline;" id="deleteJudgeForm{{ $judge->id }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" class="btn-icon btn-icon-delete" onclick="confirmForm(document.getElementById('deleteJudgeForm{{ $judge->id }}'), 'This judge will be removed from the event.', {title: 'Delete Judge?'})" title="Delete Judge">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             @endforeach

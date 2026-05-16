@@ -148,10 +148,10 @@ function dismissAdminWelcome() {
         </div>
     </a>
     
-    <a href="{{ route('auditLogs.index') }}" class="card-clickable">
+    <a href="{{ route('documents.index') }}" class="card-clickable">
         <div class="card mb-0">
-            <h3><i class="fas fa-clipboard-list"></i> Audit Logs</h3>
-            <p style="font-size: 2rem; font-weight: bold; color: var(--color-text);">{{ $auditLogCount }}</p>
+            <h3><i class="fas fa-folder-open"></i> Documents</h3>
+            <p style="font-size: 2rem; font-weight: bold; color: var(--color-text);">{{ $eventCount }}</p>
         </div>
     </a>
 </div>
@@ -171,8 +171,8 @@ function dismissAdminWelcome() {
         <a href="{{ route('results.index') }}" class="btn" title="View Tabulation Results">
             <i class="fas fa-chart-bar"></i> View Results
         </a>
-        <a href="{{ route('auditLogs.index') }}" class="btn" title="View Audit Logs">
-            <i class="fas fa-clipboard-list"></i> Audit Logs
+        <a href="{{ route('documents.index') }}" class="btn" title="View Documents">
+            <i class="fas fa-folder-open"></i> Documents
         </a>
     </div>
 </div>

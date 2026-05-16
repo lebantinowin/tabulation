@@ -193,7 +193,7 @@ class TabulationController extends Controller
 
         $orientation = count($criterias) > 3 ? 'landscape' : 'portrait';
 
-        $pdf = Pdf::loadView('admin.tabulation.print', compact('event', 'results', 'criterias', 'adminName', 'judges', 'eventJudges'))
+        $pdf = Pdf::loadView('admin.tabulation.print', compact('event', 'results', 'criterias', 'adminName', 'judges', 'eventJudges', 'orientation'))
             ->setPaper('a4', $orientation);
 
         $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $event->name) . '_Overall_Results.pdf';

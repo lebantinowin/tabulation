@@ -20,6 +20,7 @@ Route::get('/contestants', [ContestantController::class, 'publicIndex'])->name('
 
 // Authentication - Judge Login
 Route::get('/login', [AuthController::class, 'showJudgeLoginForm'])->name('login');
+Route::post('/login/verify-code', [AuthController::class, 'verifyCode'])->name('login.verifyCode');
 Route::post('/login', [AuthController::class, 'handleLogin']);
 
 // Admin Login (separate page)
@@ -88,6 +89,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/tabulation/print', [TabulationController::class, 'print'])->name('tabulation.print');
     Route::get('/tabulation/print-category/{criteriaId}', [TabulationController::class, 'printCategory'])->name('tabulation.print-category');
     Route::get('/tabulation/print-judge/{eventId}/{judgeId}', [TabulationController::class, 'printJudge'])->name('tabulation.print-judge');
+
+    // Documents
+    Route::get('/documents', [App\Http\Controllers\DocumentsController::class, 'index'])->name('documents.index');
 
     // Audit Logs
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('auditLogs.index');

@@ -39,6 +39,7 @@
             background-color: var(--color-main);
             color: var(--color-text);
             line-height: 1.6;
+            font-size: 13px;
         }
         
         /* Custom Scrollbar */
@@ -169,6 +170,7 @@
             transition: all 0.3s ease;
             border-left: 3px solid transparent;
             gap: 12px;
+            white-space: nowrap;
         }
         
         .sidebar a:hover, .sidebar a.active {
@@ -809,6 +811,7 @@
                 <a href="{{ route('contestants.index') }}" class="{{ request()->routeIs('contestants.*') ? 'active' : '' }}" title="Contestants"><i class="fas fa-users" style="width: 20px; text-align: center;"></i> <span>Contestants</span></a>
                 <a href="{{ route('judges.index') }}" class="{{ request()->routeIs('judges.*') ? 'active' : '' }}" title="Judges"><i class="fas fa-user-tie" style="width: 20px; text-align: center;"></i> <span>Judges</span></a>
                 <a href="{{ route('results.index') }}" class="{{ request()->routeIs('results.*') ? 'active' : '' }}" title="Results"><i class="fas fa-trophy" style="width: 20px; text-align: center;"></i> <span>Results</span></a>
+                <a href="{{ route('documents.index') }}" class="{{ request()->routeIs('documents.*') ? 'active' : '' }}" title="Documents"><i class="fas fa-folder-open" style="width: 20px; text-align: center;"></i> <span>Documents</span></a>
                 <a href="{{ route('auditLogs.index') }}" class="{{ request()->routeIs('auditLogs.*') ? 'active' : '' }}" title="Audit Logs"><i class="fas fa-clipboard-list" style="width: 20px; text-align: center;"></i> <span>Audit Logs</span></a>
                 <a href="{{ route('trash.index') }}" class="{{ request()->routeIs('trash.*') ? 'active' : '' }}" title="Recycle Bin"><i class="fas fa-trash-restore" style="width: 20px; text-align: center;"></i> <span>Recycle Bin</span></a>
             @elseif(auth()->user()->isJudge())

@@ -38,7 +38,12 @@ class ContestantController extends Controller
             $query->where('event_id', $selectedEventId);
         }
         
-        $contestants = $query->orderBy('number')->get();
+        $contestants = $query->orderBy('number')->paginate(10);
+
+        // Keep the event_id in pagination links
+        if ($selectedEventId) {
+            $contestants->appends(['event_id' => $selectedEventId]);
+        }
 
         return view('admin.contestants.index', compact('contestants', 'events', 'selectedEventId'));
     }
@@ -73,7 +78,7 @@ class ContestantController extends Controller
 
         AuditLog::log('contestant_created', "Created contestant: {$contestant->name}");
 
-        return redirect()->route('contestants.index', ['event_id' => $request->event_id])
+        return redirect()->route('events.show', $request->event_id)
             ->with('success', 'Contestant created successfully.');
     }
 
@@ -116,7 +121,7 @@ class ContestantController extends Controller
 
         AuditLog::log('contestant_updated', "Updated contestant: {$contestant->name}");
 
-        return redirect()->route('contestants.index', ['event_id' => $request->event_id])
+        return redirect()->route('events.show', $request->event_id)
             ->with('success', 'Contestant updated successfully.');
     }
 
@@ -133,7 +138,7 @@ class ContestantController extends Controller
 
         AuditLog::log('contestant_deleted', "Deleted contestant: {$name}");
 
-        return redirect()->route('contestants.index', ['event_id' => $contestant->event_id])
+        return redirect()->route('events.show', $contestant->event_id)
             ->with('success', 'Contestant deleted successfully.');
     }
 }
