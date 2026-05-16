@@ -171,6 +171,13 @@
             border-left: 3px solid transparent;
             gap: 12px;
             white-space: nowrap;
+            min-height: 50px;
+        }
+        
+        .sidebar a i {
+            width: 22px;
+            text-align: center;
+            font-size: 1.1rem;
         }
         
         .sidebar a:hover, .sidebar a.active {

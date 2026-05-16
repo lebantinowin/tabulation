@@ -77,6 +77,97 @@
     transition: opacity 0.2s;
 }
 .adm-btn:hover { opacity: 0.85; }
+
+/* ── Heatmap Styles ── */
+.heatmap-container {
+    background: var(--color-white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--color-border);
+    margin-top: 1.5rem;
+}
+.heatmap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.heatmap-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.heatmap-scroll-wrapper {
+    width: 100%;
+}
+.heatmap-grid {
+    display: grid;
+    grid-template-rows: repeat(7, 1fr);
+    grid-auto-flow: column;
+    grid-gap: 3px;
+    width: 100%;
+}
+.heatmap-cell {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 2px;
+    background-color: rgba(0, 0, 0, 0.05);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+.heatmap-cell:hover {
+    transform: scale(1.2);
+    z-index: 10;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+/* Levels using dark/green aesthetic */
+.heatmap-cell[data-level="1"] { background-color: #c6e48b; }
+.heatmap-cell[data-level="2"] { background-color: #7bc96f; }
+.heatmap-cell[data-level="3"] { background-color: #239a3b; }
+.heatmap-cell[data-level="4"] { background-color: #196127; }
+
+.heatmap-wrapper {
+    display: flex;
+    width: 100%;
+}
+.heatmap-days {
+    display: grid;
+    grid-template-rows: repeat(7, 1fr);
+    grid-gap: 3px;
+    margin-right: 8px;
+    font-size: 10px;
+    color: var(--color-muted);
+    text-align: right;
+    align-items: center;
+}
+.heatmap-day { visibility: hidden; }
+.heatmap-day:nth-child(2),
+.heatmap-day:nth-child(4),
+.heatmap-day:nth-child(6) {
+    visibility: visible;
+}
+
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--color-muted);
+    justify-content: flex-end;
+    margin-top: 15px;
+    padding-right: 1rem;
+}
+.legend-cell {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+}
 </style>
 
 <div class="page-header">
@@ -156,24 +247,90 @@ function dismissAdminWelcome() {
     </a>
 </div>
 
-<div class="card mt-4">
-    <h2>Quick Actions</h2>
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <a href="{{ route('events.create') }}" class="btn" title="Create New Event">
-            <i class="fas fa-plus"></i> Create Event
-        </a>
-        <a href="{{ route('contestants.create') }}" class="btn" title="Add New Contestant">
-            <i class="fas fa-user-plus"></i> Add Contestant
-        </a>
-        <a href="{{ route('judges.create') }}" class="btn" title="Add New Judge">
-            <i class="fas fa-user-tie"></i> Add Judge
-        </a>
-        <a href="{{ route('results.index') }}" class="btn" title="View Tabulation Results">
-            <i class="fas fa-chart-bar"></i> View Results
-        </a>
-        <a href="{{ route('documents.index') }}" class="btn" title="View Documents">
-            <i class="fas fa-folder-open"></i> Documents
-        </a>
+<!-- Activity Heatmap -->
+<div class="heatmap-container">
+    <div class="heatmap-header">
+        <h2>
+            <i class="fas fa-chart-area text-muted"></i> Tabulation Activity 
+            @if(count($availableYears) > 1)
+                <form action="{{ url()->current() }}" method="GET" style="display: inline-block; margin-left: 8px;">
+                    <select name="year" onchange="this.form.submit()" style="border: none; background: transparent; font-size: 1.1rem; color: var(--color-muted); cursor: pointer; outline: none; padding: 0; font-weight: 500; font-family: inherit;">
+                        @foreach($availableYears as $y)
+                            <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>{{ $y }}</option>
+                        @endforeach
+                    </select>
+                </form>
+            @else
+                <span style="color: var(--color-muted); font-size: 1rem; font-weight: normal; margin-left: 8px;">{{ $selectedYear }}</span>
+            @endif
+        </h2>
+    </div>
+    
+    <div class="heatmap-scroll-wrapper">
+        @php
+            $monthLabels = [];
+            $colIndex = 0;
+            $lastMonth = '';
+            
+            // Generate columns (weeks)
+            $weeks = array_chunk($heatmap, 7);
+            foreach($weeks as $week) {
+                $month = null;
+                foreach($week as $day) {
+                    if ($day['is_first_of_month']) {
+                        $month = $day['month'];
+                        break;
+                    }
+                }
+                
+                if ($colIndex === 0) {
+                    $month = 'Jan';
+                }
+                
+                if ($month && $month != $lastMonth) {
+                    $monthLabels[] = ['name' => $month, 'col' => $colIndex];
+                    $lastMonth = $month;
+                }
+                $colIndex++;
+            }
+        @endphp
+        
+        <div style="position: relative; height: 16px; margin-left: 32px; font-size: 10px; color: var(--color-muted);">
+            @foreach($monthLabels as $label)
+                <span style="position: absolute; left: {{ ($label['col'] / count($weeks)) * 100 }}%;">{{ $label['name'] }}</span>
+            @endforeach
+        </div>
+        
+        <div class="heatmap-wrapper">
+            <div class="heatmap-days" style="width: 24px; flex-shrink: 0;">
+                <div class="heatmap-day">Sun</div>
+                <div class="heatmap-day">Mon</div>
+                <div class="heatmap-day">Tue</div>
+                <div class="heatmap-day">Wed</div>
+                <div class="heatmap-day">Thu</div>
+                <div class="heatmap-day">Fri</div>
+                <div class="heatmap-day">Sat</div>
+            </div>
+            <div class="heatmap-grid" style="grid-template-columns: repeat({{ count($weeks) }}, 1fr);">
+                @foreach($heatmap as $day)
+                    <div class="heatmap-cell" 
+                         data-level="{{ $day['level'] }}" 
+                         title="{{ $day['in_year'] ? $day['count'] . ' activities on ' . date('M j, Y', strtotime($day['date'])) : '' }}"
+                         style="{{ !$day['in_year'] ? 'visibility: hidden;' : '' }}">
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    
+    <div class="heatmap-legend">
+        <span>Less</span>
+        <div class="legend-cell" style="background-color: rgba(0,0,0,0.05);"></div>
+        <div class="legend-cell" style="background-color: #c6e48b;"></div>
+        <div class="legend-cell" style="background-color: #7bc96f;"></div>
+        <div class="legend-cell" style="background-color: #239a3b;"></div>
+        <div class="legend-cell" style="background-color: #196127;"></div>
+        <span>More</span>
     </div>
 </div>
 
