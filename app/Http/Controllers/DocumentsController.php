@@ -9,7 +9,7 @@ class DocumentsController extends Controller
 {
     public function index()
     {
-        $events = Event::with('criterias')->orderBy('date', 'desc')->paginate(10);
+        $events = Event::with('criteria')->orderBy('date', 'desc')->paginate(10);
         return view('admin.documents.index', compact('events'));
     }
 }

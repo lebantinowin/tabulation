@@ -188,7 +188,7 @@
                 @foreach($criterias as $criteria)
                     <th class="center">{{ $criteria->name }}<br><span style="font-weight:400; font-size:8pt;">({{ $criteria->weight }}%)</span></th>
                 @endforeach
-                <th class="right">Overall Weighted Score</th>
+                <th class="right">OVERALL<br>WEIGHTED<br>SCORE</th>
             </tr>
         </thead>
         <tbody>
