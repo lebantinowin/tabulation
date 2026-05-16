@@ -38,7 +38,7 @@ class ContestantController extends Controller
             $query->where('event_id', $selectedEventId);
         }
         
-        $contestants = $query->orderBy('number')->paginate(10);
+        $contestants = $query->orderBy('number')->paginate(7);
 
         // Keep the event_id in pagination links
         if ($selectedEventId) {

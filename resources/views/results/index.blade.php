@@ -186,5 +186,14 @@
             </a>
         @endforeach
     </div>
+    
+    @if($events->hasPages())
+    <div class="mt-4 flex justify-between items-center" style="flex-wrap: wrap; gap: 1rem; margin-top: 2rem;">
+        <div class="pagination-info" style="font-size: 0.85rem; color: var(--color-muted);">
+            Showing {{ $events->firstItem() }} to {{ $events->lastItem() }} of {{ $events->total() }} events
+        </div>
+        {{ $events->links('pagination::custom') }}
+    </div>
+    @endif
 @endif
 @endsection

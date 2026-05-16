@@ -42,7 +42,7 @@ class JudgeController extends Controller
         if ($selectedEventId) {
             $judgesQuery->where('event_id', $selectedEventId);
         }
-        $judges = $judgesQuery->orderBy('judge_number')->orderBy('name')->paginate(10);
+        $judges = $judgesQuery->orderBy('judge_number')->orderBy('name')->paginate(7);
 
         // Keep the event_id in pagination links
         if ($selectedEventId) {

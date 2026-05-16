@@ -62,6 +62,7 @@
                     justify-content: center; position: relative;">
 
             {{-- Action buttons: top-right of the details panel --}}
+            @if(auth()->user()->isSuperAdmin())
             <div class="actions"
                  style="position: absolute; top: 1rem; right: 1rem; display: flex; gap: 0.5rem;">
                 <a href="{{ route('contestants.edit', $contestant->id) }}"
@@ -79,6 +80,7 @@
                     </button>
                 </form>
             </div>
+            @endif
 
             <h2>{{ $contestant->name }}</h2>
 

@@ -13,7 +13,7 @@ class AdminReportController extends Controller
         $contributions = AdminReport::with('admin')
             ->where('type', 'contribution')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(6);
 
         return view('admin.reports.index', compact('contributions'));
     }

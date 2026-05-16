@@ -14,11 +14,11 @@ class SystemAdminController extends Controller
 
     public function index()
     {
-        $admins = User::where('role', 'admin')->orderBy('created_at', 'desc')->paginate(10);
+        $admins = User::where('role', 'admin')->orderBy('created_at', 'desc')->paginate(7);
 
         $reports = AdminReport::with('admin')
             ->orderBy('created_at', 'desc')
-            ->paginate(7, ['*'], 'reports_page');
+            ->paginate(6, ['*'], 'reports_page');
 
         return view('admin.system-admins.index', compact('admins', 'reports'));
     }

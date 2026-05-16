@@ -118,5 +118,12 @@
     </tbody>
 </table>
 
-
+@if($judges->hasPages())
+<div class="mt-4 flex justify-between items-center" style="flex-wrap: wrap; gap: 1rem;">
+    <div class="pagination-info" style="font-size: 0.85rem; color: var(--color-muted);">
+        Showing {{ $judges->firstItem() }} to {{ $judges->lastItem() }} of {{ $judges->total() }} judges
+    </div>
+    {{ $judges->links('pagination::custom') }}
+</div>
+@endif
 @endsection

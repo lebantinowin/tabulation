@@ -83,6 +83,7 @@
         </span>
     </div>
     
+    @if(auth()->user()->isSuperAdmin())
     <div class="actions" style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
         <a href="{{ route('events.edit', $event->id) }}" class="btn-icon btn-icon-edit" title="Edit Event">
             <i class="fas fa-edit"></i>
@@ -95,6 +96,7 @@
             </button>
         </form>
     </div>
+    @endif
 </div>
 
 <!-- Tabs Navigation -->

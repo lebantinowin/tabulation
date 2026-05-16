@@ -12,7 +12,7 @@ class EventController extends Controller
     // Display a listing of the resource.
     public function index()
     {
-        $events = Event::all();
+        $events = Event::paginate(7);
         return view('admin.events.index', compact('events'));
     }
 

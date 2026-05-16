@@ -263,7 +263,7 @@
                             @endforeach
                         @endif
                         @auth
-                        @if(auth()->user()->isAdmin())
+                        @if(auth()->user()->isSuperAdmin())
                             <th class="sticky-col-right-2" style="text-align: center; line-height: 1.2;">Overall<br>Weighted<br>Score</th>
                             <th class="sticky-col-right-1" style="text-align: center;">Actions</th>
                         @else
@@ -317,7 +317,7 @@
                                 @endforeach
                             @endif
                             @auth
-                            @if(auth()->user()->isAdmin())
+                            @if(auth()->user()->isSuperAdmin())
                             <td class="sticky-col-right-2" style="background-color: inherit; text-align: center;">
                                 <strong style="font-size: 1.1rem;">{{ number_format($result['total_score'], 2) }}%</strong>
                             </td>
@@ -363,7 +363,7 @@
                         <h3 style="margin-bottom: 0;">{{ $criteria->name }} - Breakdown (Weight: {{ $criteria->weight }}%)</h3>
 
                         @auth
-                        @if(auth()->user()->isAdmin())
+                        @if(auth()->user()->isSuperAdmin())
                         <button type="button" onclick="openPdfModal('{{ route('tabulation.print-category', ['criteriaId' => $criteria->id]) }}')" class="btn btn-sm" style="background: var(--color-info); padding: 0.4rem 0.8rem; font-size: 0.85rem;">
                             <i class="fas fa-file-pdf"></i> Export PDF
                         </button>

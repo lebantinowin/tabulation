@@ -80,5 +80,13 @@
     </tbody>
 </table>
 
+@if($contestants->hasPages())
+<div class="mt-4 flex justify-between items-center" style="flex-wrap: wrap; gap: 1rem;">
+    <div class="pagination-info" style="font-size: 0.85rem; color: var(--color-muted);">
+        Showing {{ $contestants->firstItem() }} to {{ $contestants->lastItem() }} of {{ $contestants->total() }} contestants
+    </div>
+    {{ $contestants->links('pagination::custom') }}
+</div>
+@endif
 
 @endsection

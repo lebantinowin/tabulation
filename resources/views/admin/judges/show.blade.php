@@ -63,6 +63,7 @@
                     justify-content: center; position: relative;">
 
             {{-- Action buttons: top-right of the details panel --}}
+            @if(auth()->user()->isSuperAdmin())
             <div class="actions"
                  style="position: absolute; top: 1rem; right: 1rem; display: flex; gap: 0.5rem;">
                 <a href="{{ route('judges.edit', $judge->id) }}"
@@ -80,6 +81,7 @@
                     </button>
                 </form>
             </div>
+            @endif
 
             <h2>{{ $judge->name }}</h2>
 
@@ -95,9 +97,11 @@
                     <button type="button" class="btn-icon" id="copyBtn" onclick="copyLoginCode()" title="Copy Login Code">
                         <i class="fas fa-copy"></i>
                     </button>
+                    @if(auth()->user()->isSuperAdmin())
                     <a href="{{ route('judges.edit', $judge->id) }}" class="btn-icon" title="Regenerate Login Code">
                         <i class="fas fa-sync-alt"></i>
                     </a>
+                    @endif
                 </div>
                 <small style="color: var(--color-muted);">Share this code with the judge for login</small>
             </div>
@@ -108,6 +112,7 @@
                     <span class="badge {{ $judge->is_active ? 'badge-success' : 'badge-secondary' }}">
                         {{ $judge->is_active ? 'Active' : 'Inactive' }}
                     </span>
+                    @if(auth()->user()->isSuperAdmin())
                         <form action="{{ route('judges.toggleActive', $judge->id) }}" method="POST" style="display: inline;" id="toggleActiveForm">
                         @csrf
                         <button type="button"
@@ -117,6 +122,7 @@
                             <i class="fas fa-{{ $judge->is_active ? 'ban' : 'check' }}"></i>
                         </button>
                     </form>
+                    @endif
                 </div>
             </div>
 
