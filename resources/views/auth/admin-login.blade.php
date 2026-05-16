@@ -114,7 +114,6 @@
     <div class="login-card">
         <div class="login-header">
             <h2><i class="fas fa-shield-alt"></i> Admin Login</h2>
-            <p>Enter your credentials to access the admin panel</p>
         </div>
         
         @if($errors->any())
@@ -188,7 +187,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
             clearInterval(interval);
             this.submit();
         }
-    }, 500);
+    }, 100);
 });
 </script>
 @endsection

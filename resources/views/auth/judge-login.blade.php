@@ -153,7 +153,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
             clearInterval(interval);
             this.submit();
         }
-    }, 500);
+    }, 200);
 });
 </script>
 @endsection
