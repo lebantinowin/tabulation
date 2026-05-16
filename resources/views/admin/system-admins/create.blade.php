@@ -10,7 +10,12 @@
     </a>
 </div>
 
-<div class="card" style="max-width: 600px;">
+<div class="card" style="max-width: 540px;">
+    <div style="background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.2); border-radius: 8px; padding: 0.9rem 1.1rem; margin-bottom: 1.5rem; font-size: 0.88rem; color: #1d4ed8;">
+        <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+        You only set the name and email. The admin will set their own password when they log in for the first time.
+    </div>
+
     <form action="{{ route('system-admins.store') }}" method="POST">
         @csrf
 
@@ -26,20 +31,9 @@
             @error('email') <div class="text-danger" style="font-size: 0.85rem; margin-top: 4px;">{{ $message }}</div> @enderror
         </div>
 
-        <div class="form-group">
-            <label for="password"><i class="fas fa-lock" style="margin-right: 6px;"></i> Password</label>
-            <input type="password" id="password" name="password" required placeholder="Minimum 6 characters">
-            @error('password') <div class="text-danger" style="font-size: 0.85rem; margin-top: 4px;">{{ $message }}</div> @enderror
-        </div>
-
-        <div class="form-group">
-            <label for="password_confirmation"><i class="fas fa-lock" style="margin-right: 6px;"></i> Confirm Password</label>
-            <input type="password" id="password_confirmation" name="password_confirmation" required placeholder="Re-enter password">
-        </div>
-
         <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
             <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Create Admin
+                <i class="fas fa-paper-plane"></i> Create Admin Account
             </button>
             <a href="{{ route('system-admins.index') }}" class="btn btn-secondary">Cancel</a>
         </div>

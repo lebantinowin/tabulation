@@ -157,6 +157,9 @@
         </form>
         
         <div class="login-footer">
+            <a href="{{ route('admin.setup') }}" style="display: block; margin-bottom: 0.75rem;">
+                <i class="fas fa-key"></i> First time? Set up your password
+            </a>
             <a href="{{ route('landing') }}">
                 <i class="fas fa-arrow-left"></i> Back to Home
             </a>

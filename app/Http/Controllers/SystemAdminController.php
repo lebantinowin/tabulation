@@ -4,16 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\AuditLog;
+use App\Models\AdminReport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 
 class SystemAdminController extends Controller
 {
+    // ─── Admin Management ────────────────────────────────────────────────────
+
     public function index()
     {
         $admins = User::where('role', 'admin')->orderBy('created_at', 'desc')->paginate(10);
-        return view('admin.system-admins.index', compact('admins'));
+
+        $reports = AdminReport::with('admin')
+            ->orderBy('created_at', 'desc')
+            ->paginate(7, ['*'], 'reports_page');
+
+        return view('admin.system-admins.index', compact('admins', 'reports'));
     }
 
     public function create()
@@ -21,64 +28,35 @@ class SystemAdminController extends Controller
         return view('admin.system-admins.create');
     }
 
+    /** Superadmin sets name + email only. Admin will set their own password on first login. */
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
         ]);
 
-        $admin = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => 'admin',
+        User::create([
+            'name'             => $request->name,
+            'email'            => $request->email,
+            'password'         => bcrypt(\Illuminate\Support\Str::random(32)), // random unusable password
+            'role'             => 'admin',
+            'password_changed' => false, // flag: must set own password on first login
         ]);
 
-        AuditLog::create([
-            'user_id' => Auth::id(),
-            'action'  => 'Created admin account: ' . $admin->name,
-        ]);
+        AuditLog::create(['user_id' => Auth::id(), 'action' => 'Created admin account: ' . $request->name]);
 
-        return redirect()->route('system-admins.index')->with('success', 'Admin account created successfully.');
+        return redirect()->route('system-admins.index')->with('success', 'Admin account created. They must set their password on first login.');
     }
 
     public function show(string $id)
     {
         $admin = User::where('role', 'admin')->findOrFail($id);
-        return view('admin.system-admins.show', compact('admin'));
-    }
-
-    public function edit(string $id)
-    {
-        $admin = User::where('role', 'admin')->findOrFail($id);
-        return view('admin.system-admins.edit', compact('admin'));
-    }
-
-    public function update(Request $request, string $id)
-    {
-        $admin = User::where('role', 'admin')->findOrFail($id);
-
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,' . $admin->id,
-            'password' => 'nullable|string|min:6|confirmed',
-        ]);
-
-        $admin->name  = $request->name;
-        $admin->email = $request->email;
-        if ($request->filled('password')) {
-            $admin->password = Hash::make($request->password);
-        }
-        $admin->save();
-
-        AuditLog::create([
-            'user_id' => Auth::id(),
-            'action'  => 'Updated admin account: ' . $admin->name,
-        ]);
-
-        return redirect()->route('system-admins.index')->with('success', 'Admin account updated successfully.');
+        $reports = AdminReport::where('admin_id', $admin->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+            
+        return view('admin.system-admins.show', compact('admin', 'reports'));
     }
 
     public function destroy(string $id)
@@ -87,11 +65,61 @@ class SystemAdminController extends Controller
         $name  = $admin->name;
         $admin->delete();
 
-        AuditLog::create([
-            'user_id' => Auth::id(),
-            'action'  => 'Deleted admin account: ' . $name,
-        ]);
+        AuditLog::create(['user_id' => Auth::id(), 'action' => 'Deleted admin account: ' . $name]);
 
         return redirect()->route('system-admins.index')->with('success', 'Admin account deleted.');
+    }
+
+    public function toggleActive(string $id)
+    {
+        $admin = User::where('role', 'admin')->findOrFail($id);
+        $admin->is_active = !$admin->is_active;
+        $admin->save();
+
+        $status = $admin->is_active ? 'activated' : 'deactivated';
+        AuditLog::create(['user_id' => Auth::id(), 'action' => "Admin account {$status}: {$admin->name}"]);
+
+        return redirect()->route('system-admins.index')->with('success', "Admin {$status} successfully.");
+    }
+
+    /** Superadmin marks a report as read */
+    public function markReportRead(string $id)
+    {
+        $report = AdminReport::findOrFail($id);
+        $report->is_read = true;
+        $report->save();
+
+        return redirect()->route('system-admins.index')->with('success', 'Report marked as read.');
+    }
+
+    // ─── Admin Profile Setup (first login) ───────────────────────────────────
+
+    public function showSetup()
+    {
+        return view('admin.system-admins.setup');
+    }
+
+    public function completeSetup(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $user = User::where('email', $request->email)->where('role', 'admin')->first();
+
+        if (!$user) {
+            return back()->withErrors(['email' => 'Admin account not found.'])->withInput();
+        }
+
+        if ($user->password_changed) {
+            return back()->withErrors(['email' => 'Account already setup. Please login directly.'])->withInput();
+        }
+
+        $user->password         = bcrypt($request->password);
+        $user->password_changed = true;
+        $user->save();
+
+        return redirect()->route('admin.login')->with('success', 'Password set successfully! You can now login.');
     }
 }

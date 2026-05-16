@@ -99,6 +99,7 @@ th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col
                 <i class="fas fa-sync-alt fa-spin"></i> Refreshing in 60s
             </span>
         </div>
+        @if(auth()->user()->isSuperAdmin())
         <div class="flex gap-2" style="flex-wrap: wrap;">
             <button type="button" onclick="openPdfModal('{{ route('tabulation.print', ['event_id' => $event->id]) }}')" class="btn" style="background: var(--color-info);">
                 <i class="fas fa-file-pdf"></i> Export PDF
@@ -118,6 +119,7 @@ th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col
                 </div>
             @endif
         </div>
+        @endif
     </div>
 
     <!-- Judges Progress Table -->
@@ -198,7 +200,9 @@ th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col
                         <th style="min-width: 120px; text-align: center;">C{{ $loop->iteration }}<br><small style="font-weight: 400; opacity: 0.8;">{{ $criteria->name }}<br>({{ $criteria->weight }}%)</small></th>
                     @endforeach
                     <th class="sticky-col-right-2" style="text-align: center;">Total Score</th>
+                    @if(auth()->user()->isSuperAdmin())
                     <th class="sticky-col-right-1" style="text-align: center;">Actions</th>
+                    @endif
                 </tr>
             </thead>
             <tbody id="resultsTableBody">
@@ -231,6 +235,7 @@ th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col
                             <br><span class="badge badge-warning" style="font-size: 0.7rem;">Overridden</span>
                         @endif
                     </td>
+                    @if(auth()->user()->isSuperAdmin())
                     <td class="sticky-col-right-1" style="background-color: inherit; text-align: center;">
                         <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
                             <button type="button" class="btn-icon btn-icon-edit" title="Override Score / Add Note" onclick="openOverrideModal({{ $result['contestant']->id }}, '{{ addslashes($result['contestant']->name) }}', {{ $result['total_score'] }}, '{{ addslashes($result['message'] ?? '') }}')">
@@ -241,6 +246,7 @@ th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col
                             </button>
                         </div>
                     </td>
+                    @endif
                 </tr>
                 @endforeach
             </tbody>

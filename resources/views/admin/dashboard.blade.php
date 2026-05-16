@@ -251,7 +251,8 @@ function dismissAdminWelcome() {
 <div class="heatmap-container">
     <div class="heatmap-header">
         <h2>
-            <i class="fas fa-chart-area text-muted"></i> Tabulation Activity 
+            <i class="fas fa-chart-area text-muted"></i> 
+            {{ auth()->user()->isSuperAdmin() ? 'Tabulation Activity' : 'Contribution Activity' }}
             @if(count($availableYears) > 1)
                 <form action="{{ url()->current() }}" method="GET" style="display: inline-block; margin-left: 8px;">
                     <select name="year" onchange="this.form.submit()" style="border: none; background: transparent; font-size: 1.1rem; color: var(--color-muted); cursor: pointer; outline: none; padding: 0; font-weight: 500; font-family: inherit;">

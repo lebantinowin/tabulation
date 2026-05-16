@@ -109,9 +109,11 @@
 <div class="card">
     <div class="page-header" style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: none;">
         <h2><i class="fas fa-gavel"></i> Judges</h2>
-        <a href="{{ route('judges.create', ['event_id' => $event->id]) }}" class="btn-icon" style="background: #D4A574;" title="Add Judge">
-            <i class="fas fa-user-plus"></i>
+        @if(auth()->user()->isSuperAdmin())
+        <a href="{{ route('judges.create') }}?event_id={{ $event->id }}" class="btn-icon" style="background: #D4A574;" title="Add Judge">
+            <i class="fas fa-plus"></i>
         </a>
+        @endif
     </div>
     
     @php
@@ -178,6 +180,7 @@
                 </td>
                 <td>
                     <div class="actions">
+                        @if(auth()->user()->isSuperAdmin())
                         <form action="{{ route('judges.toggleActive', $judge->id) }}" method="POST" style="display: inline;" id="toggleJudgeForm{{ $judge->id }}">
                             @csrf
                             <button type="button"
@@ -187,9 +190,11 @@
                                 <i class="fas fa-{{ $judge->is_active ? 'ban' : 'check' }}"></i>
                             </button>
                         </form>
+                        @endif
                         <a href="{{ route('judges.show', $judge->id) }}" class="btn-icon btn-icon-view" title="View Judge Details" style="background: #040D12;">
                             <i class="fas fa-eye"></i>
                         </a>
+                        @if(auth()->user()->isSuperAdmin())
                         <a href="{{ route('judges.exportPdf', $judge->id) }}" class="btn-icon" target="_blank" title="Print Credentials" style="background-color: var(--color-success); color: white;">
                             <i class="fas fa-print"></i>
                         </a>
@@ -203,6 +208,7 @@
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>
+                        @endif
                     </div>
                 </td>
             </tr>
@@ -220,9 +226,11 @@
 <div class="card">
     <div class="page-header" style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: none;">
         <h2><i class="fas fa-list"></i> Criteria</h2>
+        @if(auth()->user()->isSuperAdmin())
         <a href="{{ route('criteria.create') }}?event_id={{ $event->id }}" class="btn-icon" style="background: #D4A574;" title="Add Criteria">
             <i class="fas fa-plus"></i>
         </a>
+        @endif
     </div>
     
     @if($event->criteria && $event->criteria->count() > 0)
@@ -243,6 +251,7 @@
                 <td>{{ $criteria->description ?? 'N/A' }}</td>
                 <td>
                     <div class="actions">
+                        @if(auth()->user()->isSuperAdmin())
                         <a href="{{ route('criteria.edit', $criteria->id) }}" class="btn-icon btn-icon-edit" title="Edit">
                             <i class="fas fa-edit"></i>
                         </a>
@@ -253,6 +262,7 @@
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>
+                        @endif
                     </div>
                 </td>
             </tr>
@@ -270,9 +280,11 @@
 <div class="card">
     <div class="page-header" style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: none;">
         <h2><i class="fas fa-users"></i> Contestants</h2>
+        @if(auth()->user()->isSuperAdmin())
         <a href="{{ route('contestants.create') }}?event_id={{ $event->id }}" class="btn-icon" style="background: #D4A574;" title="Add Contestant">
             <i class="fas fa-user-plus"></i>
         </a>
+        @endif
     </div>
     
     @php
@@ -337,6 +349,7 @@
                         <a href="{{ route('contestants.show', $contestant->id) }}" class="btn-icon btn-icon-view" style="background: #040D12;" title="View">
                             <i class="fas fa-eye"></i>
                         </a>
+                        @if(auth()->user()->isSuperAdmin())
                         <a href="{{ route('contestants.edit', $contestant->id) }}" class="btn-icon btn-icon-edit" title="Edit">
                             <i class="fas fa-edit"></i>
                         </a>
@@ -347,6 +360,7 @@
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>
+                        @endif
                     </div>
                 </td>
             </tr>

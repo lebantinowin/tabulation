@@ -5,9 +5,11 @@
 @section('content')
 <div class="page-header">
     <h1>Contestants Management</h1>
+    @if(auth()->user()->isSuperAdmin())
     <a href="{{ route('contestants.create', $selectedEventId ? ['event_id' => $selectedEventId] : []) }}" class="btn btn-primary" title="Add New Contestant">
         <i class="fas fa-user-plus"></i> Add Contestant
     </a>
+    @endif
 </div>
 
 @if(session('success'))
@@ -55,6 +57,7 @@
                     <a href="{{ route('contestants.show', $contestant->id) }}" class="btn-icon btn-icon-view" title="View Contestant Details">
                         <i class="fas fa-eye"></i>
                     </a>
+                    @if(auth()->user()->isSuperAdmin())
                     <a href="{{ route('contestants.edit', $contestant->id) }}" class="btn-icon btn-icon-edit" title="Edit Contestant">
                         <i class="fas fa-edit"></i>
                     </a>
@@ -65,6 +68,7 @@
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
+                    @endif
                 </div>
             </td>
         </tr>

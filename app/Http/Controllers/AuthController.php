@@ -128,6 +128,11 @@ class AuthController extends Controller
             
             AuditLog::log('login', 'Admin logged in');
             
+            // If admin hasn't set their own password yet, redirect to setup
+            if ($user->role === 'admin' && !$user->password_changed) {
+                return redirect()->route('admin.setup');
+            }
+            
             // Set flash message for login success
             $request->session()->flash('login_success', true);
             

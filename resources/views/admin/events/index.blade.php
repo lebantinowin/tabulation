@@ -5,9 +5,11 @@
 @section('content')
 <div class="page-header">
     <h1>Events Management</h1>
+    @if(auth()->user()->isSuperAdmin())
     <a href="{{ route('events.create') }}" class="btn btn-primary" title="Create New Event">
         <i class="fas fa-plus"></i> Create Event
     </a>
+    @endif
 </div>
 
 @if(session('success'))
@@ -58,6 +60,7 @@
                     <a href="{{ route('events.show', $event->id) }}" class="btn-icon btn-icon-view" title="View Event Details">
                         <i class="fas fa-eye"></i>
                     </a>
+                    @if(auth()->user()->isSuperAdmin())
                     <a href="{{ route('events.edit', $event->id) }}" class="btn-icon btn-icon-edit" title="Edit Event">
                         <i class="fas fa-edit"></i>
                     </a>
@@ -82,6 +85,7 @@
                             <i class="fas fa-archive"></i>
                         </button>
                     </form>
+                    @endif
                     @endif
                 </div>
             </td>

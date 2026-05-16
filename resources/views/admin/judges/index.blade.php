@@ -5,9 +5,11 @@
 @section('content')
 <div class="page-header">
     <h1>Judges Management</h1>
+    @if(auth()->user()->isSuperAdmin())
     <a href="{{ route('judges.create', $selectedEventId ? ['event_id' => $selectedEventId] : []) }}" class="btn btn-primary" title="Add New Judge">
         <i class="fas fa-plus"></i> Add Judge
     </a>
+    @endif
 </div>
 
 @if(session('success'))
@@ -76,6 +78,7 @@
             </td>
             <td>
                 <div class="actions" style="display: flex; gap: 0.5rem;">
+                    @if(auth()->user()->isSuperAdmin())
                     <form action="{{ route('judges.toggleActive', $judge->id) }}" method="POST" style="display: inline;">
                         @csrf
                         <button type="button"
@@ -85,9 +88,11 @@
                             <i class="fas fa-{{ $judge->is_active ? 'ban' : 'check' }}"></i>
                         </button>
                     </form>
+                    @endif
                     <a href="{{ route('judges.show', $judge->id) }}" class="btn-icon btn-icon-view" title="View Judge Details">
                         <i class="fas fa-eye"></i>
                     </a>
+                    @if(auth()->user()->isSuperAdmin())
                     <a href="{{ route('judges.exportPdf', $judge->id) }}" class="btn-icon" target="_blank" title="Print Credentials" style="background-color: var(--color-success); color: white;">
                         <i class="fas fa-print"></i>
                     </a>
@@ -101,6 +106,7 @@
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
+                    @endif
                 </div>
             </td>
         </tr>

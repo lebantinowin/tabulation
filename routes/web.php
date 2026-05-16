@@ -97,10 +97,23 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('auditLogs.index');
 });
 
-// Superadmin Management
+// Superadmin Management (superadmin only)
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
-    Route::resource('system-admins', App\Http\Controllers\SystemAdminController::class);
+    Route::resource('system-admins', App\Http\Controllers\SystemAdminController::class)->except(['edit', 'update']);
+    Route::post('/system-admins/{id}/toggle-active', [App\Http\Controllers\SystemAdminController::class, 'toggleActive'])->name('system-admins.toggleActive');
+    Route::post('/system-admins/reports/{id}/read', [App\Http\Controllers\SystemAdminController::class, 'markReportRead'])->name('system-admins.reports.read');
 });
+
+// Admin Reports (admin role only)
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/reports', [App\Http\Controllers\AdminReportController::class, 'index'])->name('admin.reports.index');
+    Route::get('/admin/reports/create', [App\Http\Controllers\AdminReportController::class, 'create'])->name('admin.reports.create');
+    Route::post('/admin/reports', [App\Http\Controllers\AdminReportController::class, 'store'])->name('admin.reports.store');
+});
+
+// Admin first-login password setup (Unauthenticated)
+Route::get('/admin/setup', [App\Http\Controllers\SystemAdminController::class, 'showSetup'])->name('admin.setup');
+Route::post('/admin/setup', [App\Http\Controllers\SystemAdminController::class, 'completeSetup'])->name('admin.setup.complete');
 
 // Public Results Routes (accessible to all)
 Route::get('/results', [TabulationController::class, 'publicIndex'])->name('results.index');

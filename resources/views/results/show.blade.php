@@ -132,7 +132,7 @@
             <h2 style="margin-bottom: 0;">Overall Rankings</h2>
 
             @auth
-            @if(auth()->user()->isAdmin())
+            @if(auth()->user()->isSuperAdmin())
             <div class="flex gap-2" style="flex-wrap: wrap; align-items: center;">
                 <button type="button" onclick="openPdfModal('{{ route('tabulation.print', ['event_id' => $event->id]) }}')" class="btn" style="background: var(--color-info);">
                     <i class="fas fa-file-pdf"></i> Export PDF

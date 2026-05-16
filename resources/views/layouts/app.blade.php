@@ -165,7 +165,7 @@
             color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             padding: 0.85rem 1.5rem;
-            font-size: 0.95rem;
+            font-size: calc(0.95rem - 1px);
             font-weight: 500;
             transition: all 0.3s ease;
             border-left: 3px solid transparent;
@@ -177,7 +177,7 @@
         .sidebar a i {
             width: 22px;
             text-align: center;
-            font-size: 1.1rem;
+            font-size: calc(1.1rem - 1px);
         }
         
         .sidebar a:hover, .sidebar a.active {
@@ -812,7 +812,8 @@
         </div>
         
         <div class="nav-links">
-            @if(auth()->user()->isAdmin())
+            @if(auth()->user()->isSuperAdmin())
+                {{-- Superadmin nav --}}
                 <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" title="Dashboard"><i class="fas fa-tachometer-alt" style="width: 20px; text-align: center;"></i> <span>Dashboard</span></a>
                 <a href="{{ route('events.index') }}" class="{{ request()->routeIs('events.*') ? 'active' : '' }}" title="Events"><i class="fas fa-calendar-alt" style="width: 20px; text-align: center;"></i> <span>Events</span></a>
                 <a href="{{ route('contestants.index') }}" class="{{ request()->routeIs('contestants.*') ? 'active' : '' }}" title="Contestants"><i class="fas fa-users" style="width: 20px; text-align: center;"></i> <span>Contestants</span></a>
@@ -821,9 +822,15 @@
                 <a href="{{ route('documents.index') }}" class="{{ request()->routeIs('documents.*') ? 'active' : '' }}" title="Documents"><i class="fas fa-folder-open" style="width: 20px; text-align: center;"></i> <span>Documents</span></a>
                 <a href="{{ route('auditLogs.index') }}" class="{{ request()->routeIs('auditLogs.*') ? 'active' : '' }}" title="Audit Logs"><i class="fas fa-clipboard-list" style="width: 20px; text-align: center;"></i> <span>Audit Logs</span></a>
                 <a href="{{ route('trash.index') }}" class="{{ request()->routeIs('trash.*') ? 'active' : '' }}" title="Recycle Bin"><i class="fas fa-trash-restore" style="width: 20px; text-align: center;"></i> <span>Recycle Bin</span></a>
-                @if(auth()->user()->isSuperAdmin())
-                    <a href="{{ route('system-admins.index') }}" class="{{ request()->routeIs('system-admins.*') ? 'active' : '' }}" title="Admins"><i class="fas fa-user-shield" style="width: 20px; text-align: center;"></i> <span>Admins</span></a>
-                @endif
+                <a href="{{ route('system-admins.index') }}" class="{{ request()->routeIs('system-admins.*') ? 'active' : '' }}" title="Admins"><i class="fas fa-user-shield" style="width: 20px; text-align: center;"></i> <span>Admins</span></a>
+            @elseif(auth()->user()->role === 'admin')
+                {{-- Admin (read-only) nav --}}
+                <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" title="Dashboard"><i class="fas fa-tachometer-alt" style="width: 20px; text-align: center;"></i> <span>Dashboard</span></a>
+                <a href="{{ route('events.index') }}" class="{{ request()->routeIs('events.*') ? 'active' : '' }}" title="Events"><i class="fas fa-calendar-alt" style="width: 20px; text-align: center;"></i> <span>Events</span></a>
+                <a href="{{ route('contestants.index') }}" class="{{ request()->routeIs('contestants.*') ? 'active' : '' }}" title="Contestants"><i class="fas fa-users" style="width: 20px; text-align: center;"></i> <span>Contestants</span></a>
+                <a href="{{ route('judges.index') }}" class="{{ request()->routeIs('judges.*') ? 'active' : '' }}" title="Judges"><i class="fas fa-user-tie" style="width: 20px; text-align: center;"></i> <span>Judges</span></a>
+                <a href="{{ route('results.index') }}" class="{{ request()->routeIs('results.*') ? 'active' : '' }}" title="Results"><i class="fas fa-trophy" style="width: 20px; text-align: center;"></i> <span>Results</span></a>
+                <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" title="Reports"><i class="fas fa-flag" style="width: 20px; text-align: center;"></i> <span>Reports</span></a>
             @elseif(auth()->user()->isJudge())
                 <a href="{{ route('judge.dashboard') }}" class="{{ request()->routeIs('judge.dashboard') ? 'active' : '' }}" title="Dashboard"><i class="fas fa-tachometer-alt" style="width: 20px; text-align: center;"></i> <span>Dashboard</span></a>
                 <a href="{{ route('scores.index') }}" class="{{ request()->routeIs('scores.*') ? 'active' : '' }}" title="Scores"><i class="fas fa-star" style="width: 20px; text-align: center;"></i> <span>Scores</span></a>
