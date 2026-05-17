@@ -83,8 +83,11 @@
         </span>
     </div>
     
-    @if(auth()->user()->isSuperAdmin())
-    <div class="actions" style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
+    <div class="actions" style="margin-top: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+        <a href="{{ route('events.part2', $event->id) }}" class="btn" style="background: #2c3e50; color: white;" title="Create Part 2 or Advance Round">
+            <i class="fas fa-forward"></i> Advance Round (Part 2)
+        </a>
+        @if(auth()->user()->isSuperAdmin())
         <a href="{{ route('events.edit', $event->id) }}" class="btn-icon btn-icon-edit" title="Edit Event">
             <i class="fas fa-edit"></i>
         </a>
@@ -95,8 +98,8 @@
                 <i class="fas fa-trash"></i>
             </button>
         </form>
+        @endif
     </div>
-    @endif
 </div>
 
 <!-- Tabs Navigation -->

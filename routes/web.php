@@ -45,6 +45,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/events/{event}/unarchive', [App\Http\Controllers\EventController::class, 'unarchive'])->name('events.unarchive');
     Route::post('/events/{event}/reset-scores', [App\Http\Controllers\EventController::class, 'resetScores'])->name('events.resetScores');
     Route::post('/events/{event}/set-performing', [App\Http\Controllers\EventController::class, 'setPerforming'])->name('events.setPerforming');
+    Route::get('/events/{event}/part2', [App\Http\Controllers\EventController::class, 'createPart2Form'])->name('events.part2');
+    Route::post('/events/{event}/part2', [App\Http\Controllers\EventController::class, 'storePart2'])->name('events.storePart2');
     Route::resource('events', EventController::class);
 
     // Criteria routes

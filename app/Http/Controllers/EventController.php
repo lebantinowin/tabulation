@@ -227,4 +227,41 @@ class EventController extends Controller
         }
         return redirect()->back()->with('success', 'Performing contestant updated.');
     }
+    public function createPart2Form(Event $event)
+    {
+        $contestants = $event->contestants;
+        $judges = \App\Models\User::where('event_id', $event->id)->where('role', 'judge')->get();
+        return view('admin.events.part2', compact('event', 'contestants', 'judges'));
+    }
+
+    public function storePart2(Request $request, Event $event)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'contestants' => 'required|array|min:1',
+            'contestants.*' => 'exists:contestants,id',
+            'judges' => 'nullable|array',
+            'judges.*' => 'exists:users,id',
+        ]);
+
+        $newEvent = $event->replicate(['is_archived', 'current_contestant_id']);
+        $newEvent->name = $request->name;
+        $newEvent->status = 'upcoming';
+        $newEvent->save();
+
+        $selectedContestants = \App\Models\Contestant::whereIn('id', $request->contestants)->get();
+        foreach ($selectedContestants as $contestant) {
+            $newContestant = $contestant->replicate();
+            $newContestant->event_id = $newEvent->id;
+            $newContestant->save();
+        }
+
+        if ($request->has('judges')) {
+            \App\Models\User::whereIn('id', $request->judges)->update(['event_id' => $newEvent->id]);
+        }
+
+        AuditLog::log('event_part2_created', 'Created ' . $newEvent->name . ' from ' . $event->name);
+
+        return redirect()->route('events.show', $newEvent->id)->with('success', 'Part 2 created successfully. You can now add criteria for the new round.');
+    }
 }
