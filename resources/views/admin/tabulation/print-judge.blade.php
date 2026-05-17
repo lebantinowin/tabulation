@@ -140,6 +140,13 @@
             color: #555;
         }
 
+        .signature-img {
+            display: block;
+            margin: 0 auto 4px auto;
+            max-width: 150px;
+            max-height: 60px;
+        }
+
         /* Footer */
         .page-footer {
             position: fixed;
@@ -213,16 +220,32 @@
     </table>
 </div>
 
+@php
+    $signaturePng = public_path('signature.png');
+    $signatureSvg = public_path('signature.svg');
+    $signatureData = null;
+    if (file_exists($signaturePng)) {
+        $signatureData = 'data:image/png;base64,' . base64_encode(file_get_contents($signaturePng));
+    } elseif (file_exists($signatureSvg)) {
+        $signatureData = 'data:image/svg+xml;base64,' . base64_encode(file_get_contents($signatureSvg));
+    }
+@endphp
 <div class="signatures-wrapper">
     <div class="signatures-title">CERTIFIED BY:</div>
     <table class="signature-grid">
         <tr>
             <td class="signature-box" style="padding-top: 50px;">
+                <div style="height: 64px;"></div>
                 <div class="signature-line"></div>
                 <div class="signature-name">{{ $judge->name }}</div>
                 <div class="signature-role">Judge</div>
             </td>
             <td class="signature-box" style="padding-top: 50px;">
+                @if($signatureData)
+                    <img src="{{ $signatureData }}" class="signature-img" alt="Admin Signature">
+                @else
+                    <div style="height: 64px;"></div>
+                @endif
                 <div class="signature-line"></div>
                 <div class="signature-name">{{ $adminName }}</div>
                 <div class="signature-role">Administrator</div>

@@ -106,6 +106,42 @@
             border-top: 1px solid #ddd;
             background: #fff;
         }
+
+        .signatures-wrapper {
+            margin-top: 60px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            display: inline-block;
+            width: 180px;
+            text-align: center;
+        }
+
+        .signature-img {
+            display: block;
+            margin: 0 auto 4px auto;
+            max-width: 150px;
+            max-height: 60px;
+        }
+
+        .signature-line {
+            width: 100%;
+            margin: 0 auto 5px auto;
+            border-top: 1px solid #000;
+        }
+
+        .signature-name {
+            font-weight: bold;
+            font-size: 9pt;
+            text-transform: uppercase;
+        }
+
+        .signature-role {
+            font-size: 8pt;
+            color: #555;
+        }
     </style>
 </head>
 <body>
@@ -133,6 +169,30 @@
     <p><strong>Instructions:</strong></p>
     <p>Please navigate to the tabulation portal on your device and enter the secure login code above to access your assigned event and begin scoring.</p>
     <p style="margin-top: 15px; color: #c53030; font-size: 9pt;">Do not share this code with anyone.</p>
+</div>
+
+@php
+    $signaturePng = public_path('signature.png');
+    $signatureSvg = public_path('signature.svg');
+    $signatureData = null;
+    if (file_exists($signaturePng)) {
+        $signatureData = 'data:image/png;base64,' . base64_encode(file_get_contents($signaturePng));
+    } elseif (file_exists($signatureSvg)) {
+        $signatureData = 'data:image/svg+xml;base64,' . base64_encode(file_get_contents($signatureSvg));
+    }
+    $adminSignatory = auth()->check() ? auth()->user()->name : 'Administrator';
+@endphp
+<div class="signatures-wrapper">
+    <div class="signature-box">
+        @if($signatureData)
+            <img src="{{ $signatureData }}" class="signature-img" alt="Admin Signature">
+        @else
+            <div style="height: 64px;"></div>
+        @endif
+        <div class="signature-line"></div>
+        <div class="signature-name">{{ $adminSignatory }}</div>
+        <div class="signature-role">Administrator</div>
+    </div>
 </div>
 
 <div class="page-footer">

@@ -151,6 +151,13 @@
             color: #555;
         }
 
+        .signature-img {
+            display: block;
+            margin: 0 auto 4px auto;
+            max-width: 150px;
+            max-height: 60px;
+        }
+
         /* Footer */
         .page-footer {
             position: fixed;
@@ -276,10 +283,25 @@
             $chunks = array_chunk($signatories, 3);
         @endphp
 
+        @php
+            $signaturePng = public_path('signature.png');
+            $signatureSvg = public_path('signature.svg');
+            $signatureData = null;
+            if (file_exists($signaturePng)) {
+                $signatureData = 'data:image/png;base64,' . base64_encode(file_get_contents($signaturePng));
+            } elseif (file_exists($signatureSvg)) {
+                $signatureData = 'data:image/svg+xml;base64,' . base64_encode(file_get_contents($signatureSvg));
+            }
+        @endphp
         @foreach($chunks as $row)
             <tr>
                 @foreach($row as $person)
                     <td class="signature-box" style="padding-top: 50px;">
+                        @if($person['role'] === 'Administrator' && $signatureData)
+                            <img src="{{ $signatureData }}" class="signature-img" alt="Admin Signature">
+                        @else
+                            <div style="height: 64px;"></div>
+                        @endif
                         <div class="signature-line"></div>
                         <div class="signature-name">{{ $person['name'] }}</div>
                         <div class="signature-role">{{ $person['role'] }}</div>
