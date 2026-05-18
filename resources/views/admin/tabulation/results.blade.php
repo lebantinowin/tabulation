@@ -93,8 +93,21 @@ th.sticky-col-left-1, th.sticky-col-left-2, th.sticky-col-right-2, th.sticky-col
 @if(isset($event) && $event)
 <div class="card">
     <div class="flex justify-between items-center mb-3" style="flex-wrap: wrap; gap: 0.75rem;">
-        <div class="flex items-center gap-3">
-            <h2 class="mb-0">{{ $event->name }} — Results</h2>
+        <div class="flex items-center gap-3" style="flex-wrap: wrap;">
+            <h2 class="mb-0" style="width: 100%;">{{ $event->name }} — Results</h2>
+            @if($event->parent_id || ($event->children && $event->children->count() > 0))
+                <div class="flex gap-2" style="margin-bottom: 0.25rem;">
+                    @if($event->parent_id)
+                        <a href="{{ route('tabulation.results', ['event_id' => $event->parent_id]) }}" class="btn btn-sm" style="background: var(--color-secondary); padding: 0.25rem 0.75rem; font-size: 0.85rem;">Part 1</a>
+                        <span class="btn btn-sm" style="background: var(--color-primary); padding: 0.25rem 0.75rem; font-size: 0.85rem; cursor: default;">{{ str_replace(($event->parent->name ?? '') . ' - ', '', $event->name) }}</span>
+                    @else
+                        <span class="btn btn-sm" style="background: var(--color-primary); padding: 0.25rem 0.75rem; font-size: 0.85rem; cursor: default;">Part 1</span>
+                        @foreach($event->children as $child)
+                            <a href="{{ route('tabulation.results', ['event_id' => $child->id]) }}" class="btn btn-sm" style="background: var(--color-secondary); padding: 0.25rem 0.75rem; font-size: 0.85rem;">{{ str_replace($event->name . ' - ', '', $child->name) }}</a>
+                        @endforeach
+                    @endif
+                </div>
+            @endif
             <span id="autoRefreshTimer" class="badge badge-secondary" style="font-size: 0.8rem; font-weight: normal;">
                 <i class="fas fa-sync-alt fa-spin"></i> Refreshing in 60s
             </span>

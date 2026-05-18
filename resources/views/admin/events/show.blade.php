@@ -122,7 +122,15 @@
     </div>
     
     @php
-    $assignedJudges = \App\Models\User::where('event_id', $event->id)->where('role', 'judge')->get();
+    $assignedJudges = \App\Models\User::where('role', 'judge')
+        ->where(function($query) use ($event) {
+            $query->where('event_id', $event->id)
+                  ->orWhereHas('scores', function($scoreQuery) use ($event) {
+                      $scoreQuery->whereHas('contestant', function($cQuery) use ($event) {
+                          $cQuery->where('event_id', $event->id);
+                      });
+                  });
+        })->get();
     @endphp
     
     @if($assignedJudges && $assignedJudges->count() > 0)
@@ -177,7 +185,9 @@
                 </td>
                 <td>{{ $judge->email ?? 'N/A' }}</td>
                 <td>
-                    @if($judge->agreement_accepted)
+                    @if($judge->event_id != $event->id)
+                    <span class="badge badge-secondary">Historical (Moved)</span>
+                    @elseif($judge->agreement_accepted)
                     <span class="badge badge-success">Active</span>
                     @else
                     <span class="badge badge-warning">Pending</span>
@@ -185,7 +195,7 @@
                 </td>
                 <td>
                     <div class="actions">
-                        @if(auth()->user()->isSuperAdmin())
+                        @if($judge->event_id == $event->id && auth()->user()->isSuperAdmin())
                         <form action="{{ route('judges.toggleActive', $judge->id) }}" method="POST" style="display: inline;" id="toggleJudgeForm{{ $judge->id }}">
                             @csrf
                             <button type="button"
@@ -203,6 +213,7 @@
                         <a href="{{ route('judges.exportPdf', $judge->id) }}" class="btn-icon" target="_blank" title="Print Credentials" style="background-color: var(--color-success); color: white;">
                             <i class="fas fa-print"></i>
                         </a>
+                        @if($judge->event_id == $event->id)
                         <a href="{{ route('judges.edit', $judge->id) }}" class="btn-icon btn-icon-edit" title="Edit Judge">
                             <i class="fas fa-edit"></i>
                         </a>
@@ -213,6 +224,7 @@
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>
+                        @endif
                         @endif
                     </div>
                 </td>

@@ -18,6 +18,7 @@ class Event extends Model
         'status',
         'is_archived',
         'current_contestant_id',
+        'parent_id',
     ];
 
     public function criteria()
@@ -43,5 +44,15 @@ class Event extends Model
     public function currentContestant()
     {
         return $this->belongsTo(Contestant::class, 'current_contestant_id');
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(Event::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Event::class, 'parent_id');
     }
 }

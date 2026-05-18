@@ -7,6 +7,21 @@
     <div class="flex items-center gap-3">
         <div>
             <h1 style="margin-bottom: 0;">{{ $event->name }}</h1>
+            
+            @if($event->parent_id || ($event->children && $event->children->count() > 0))
+                <div class="flex gap-2" style="margin-top: 0.5rem; margin-bottom: 0.25rem;">
+                    @if($event->parent_id)
+                        <a href="{{ route('results.show', $event->parent_id) }}" class="btn btn-sm" style="background: var(--color-secondary); padding: 0.25rem 0.75rem; font-size: 0.85rem;">Part 1</a>
+                        <span class="btn btn-sm" style="background: var(--color-primary); padding: 0.25rem 0.75rem; font-size: 0.85rem; cursor: default;">{{ str_replace(($event->parent->name ?? '') . ' - ', '', $event->name) }}</span>
+                    @else
+                        <span class="btn btn-sm" style="background: var(--color-primary); padding: 0.25rem 0.75rem; font-size: 0.85rem; cursor: default;">Part 1</span>
+                        @foreach($event->children as $child)
+                            <a href="{{ route('results.show', $child->id) }}" class="btn btn-sm" style="background: var(--color-secondary); padding: 0.25rem 0.75rem; font-size: 0.85rem;">{{ str_replace($event->name . ' - ', '', $child->name) }}</a>
+                        @endforeach
+                    @endif
+                </div>
+            @endif
+            
             <p style="color: #666; margin-top: 0.2rem;">
                 <i class="fas fa-calendar"></i> {{ \Carbon\Carbon::parse($event->date)->format('F d, Y') }}
 

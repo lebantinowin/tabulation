@@ -9,10 +9,9 @@ use Illuminate\Support\Facades\Storage;
 
 class EventController extends Controller
 {
-    // Display a listing of the resource.
     public function index()
     {
-        $events = Event::paginate(7);
+        $events = Event::whereNull('parent_id')->paginate(7);
         return view('admin.events.index', compact('events'));
     }
 
@@ -87,6 +86,11 @@ class EventController extends Controller
         }
 
         $event->update($data);
+
+        // Cascade status change to any Part 2 (child) events since they are hidden from the main table
+        if (isset($data['status'])) {
+            Event::where('parent_id', $event->id)->update(['status' => $data['status']]);
+        }
 
         // Build description of changes
         $changes = [];
@@ -247,6 +251,7 @@ class EventController extends Controller
         $newEvent = $event->replicate(['is_archived', 'current_contestant_id']);
         $newEvent->name = $request->name;
         $newEvent->status = 'upcoming';
+        $newEvent->parent_id = $event->id;
         $newEvent->save();
 
         $selectedContestants = \App\Models\Contestant::whereIn('id', $request->contestants)->get();

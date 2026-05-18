@@ -155,8 +155,19 @@ class TabulationController extends Controller
         // Merge: scored first, then unscored
         $results = array_values(array_merge($scored, $unscored));
 
-        // Get all judges assigned to this event
-        $judges = User::where('role', 'judge')->where('event_id', $event->id)->orderBy('judge_number')->orderBy('name')->get();
+        // Get all judges currently assigned to this event OR who have submitted scores for it
+        $judges = User::where('role', 'judge')
+            ->where(function($query) use ($event) {
+                $query->where('event_id', $event->id)
+                      ->orWhereHas('scores', function($scoreQuery) use ($event) {
+                          $scoreQuery->whereHas('contestant', function($cQuery) use ($event) {
+                              $cQuery->where('event_id', $event->id);
+                          });
+                      });
+            })
+            ->orderBy('judge_number')
+            ->orderBy('name')
+            ->get();
 
         return [$results, $criterias, $judges];
     }
@@ -423,7 +434,10 @@ class TabulationController extends Controller
             }
         }
         
-        $events = Event::where('is_archived', false)->orderBy('date', 'desc')->paginate(6);
+        $events = Event::where('is_archived', false)
+                       ->whereNull('parent_id')
+                       ->orderBy('date', 'desc')
+                       ->paginate(6);
         return view('results.index', compact('events'));
     }
     

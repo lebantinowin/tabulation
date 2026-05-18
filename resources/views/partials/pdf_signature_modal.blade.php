@@ -18,13 +18,14 @@
             <div class="form-group mb-4">
                 <label>Judges Signatories</label>
                 <div style="background: var(--color-main); padding: 1rem; border-radius: 8px; border: 1px solid var(--color-border); max-height: 200px; overflow-y: auto;">
-                    @foreach($event->judges as $judge)
+                    @php $modalJudges = $judges ?? $event->judges; @endphp
+                    @foreach($modalJudges as $judge)
                         <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; cursor: pointer; font-weight: normal;">
                             <input type="checkbox" name="judges[]" value="{{ $judge->name }}" checked style="width: 16px; height: 16px;">
                             {{ $judge->name }}
                         </label>
                     @endforeach
-                    @if($event->judges->isEmpty())
+                    @if($modalJudges->isEmpty())
                         <p class="text-muted" style="margin: 0; font-size: 0.85rem;">No judges assigned to this event yet.</p>
                     @endif
                 </div>

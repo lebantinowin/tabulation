@@ -28,7 +28,18 @@
     <tbody>
         @forelse($events as $event)
         <tr>
-            <td>{{ $event->name }}</td>
+            <td>
+                {{ $event->name }}
+                @if($event->children && $event->children->count() > 0)
+                    <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                        @foreach($event->children as $child)
+                            <a href="{{ route('events.show', $child->id) }}" class="badge" style="text-decoration: none; display: inline-block; width: fit-content; background: #2c3e50; color: white;">
+                                <i class="fas fa-forward"></i> {{ str_replace($event->name . ' - ', '', $child->name) }}
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+            </td>
             <td>{{ $event->date }}</td>
             <td>
                 @php
