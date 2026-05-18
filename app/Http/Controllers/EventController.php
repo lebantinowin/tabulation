@@ -87,11 +87,6 @@ class EventController extends Controller
 
         $event->update($data);
 
-        // Cascade status change to any Part 2 (child) events since they are hidden from the main table
-        if (isset($data['status'])) {
-            Event::where('parent_id', $event->id)->update(['status' => $data['status']]);
-        }
-
         // Build description of changes
         $changes = [];
         if ($oldData['name'] !== $event->name) {
@@ -119,7 +114,7 @@ class EventController extends Controller
             AuditLog::log('event_updated', 'Updated event: ' . $event->name);
         }
 
-        return redirect()->route('events.index')
+        return redirect()->route('events.show', $event->id)
             ->with('success', 'Event updated successfully.');
     }
 

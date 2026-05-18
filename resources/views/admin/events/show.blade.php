@@ -102,6 +102,50 @@
     </div>
 </div>
 
+<!-- Part 2 / Child Events Section -->
+@php
+    $childEvents = \App\Models\Event::where('parent_id', $event->id)->get();
+@endphp
+@if($childEvents->count() > 0)
+<div class="card" style="margin-bottom: 1.5rem;">
+    <h3 style="margin-bottom: 1rem;"><i class="fas fa-code-branch"></i> Part 2 / Advancement Rounds</h3>
+    <table style="margin: 0;">
+        <thead>
+            <tr>
+                <th>Event Name</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($childEvents as $child)
+            <tr>
+                <td>{{ $child->name }}</td>
+                <td>
+                    @php
+                        $cBadge = $child->status == 'upcoming' ? 'badge-info' : ($child->status == 'ongoing' ? 'badge-success' : 'badge-secondary');
+                    @endphp
+                    <span class="badge {{ $cBadge }}">{{ ucfirst($child->status) }}</span>
+                </td>
+                <td>
+                    <div class="actions">
+                        <a href="{{ route('events.show', $child->id) }}" class="btn-icon btn-icon-view" style="background: #040D12;" title="Manage Part 2">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        @if(auth()->user()->isSuperAdmin())
+                        <a href="{{ route('events.edit', $child->id) }}" class="btn-icon btn-icon-edit" title="Edit Part 2">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        @endif
+                    </div>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+@endif
+
 <!-- Tabs Navigation -->
 <div class="event-tabs" style="margin-bottom: 1.5rem; display: flex; border-bottom: 2px solid var(--color-border); gap: 1rem;">
     <button class="tab-btn active" onclick="switchTab('criteria', this)">Criteria</button>
@@ -125,6 +169,11 @@
     $assignedJudges = \App\Models\User::where('role', 'judge')
         ->where(function($query) use ($event) {
             $query->where('event_id', $event->id)
+                  ->orWhere(function($subQuery) use ($event) {
+                      // Include judges moved to Part 2 (child events)
+                      $childEventIds = \App\Models\Event::where('parent_id', $event->id)->pluck('id')->toArray();
+                      $subQuery->whereIn('event_id', $childEventIds);
+                  })
                   ->orWhereHas('scores', function($scoreQuery) use ($event) {
                       $scoreQuery->whereHas('contestant', function($cQuery) use ($event) {
                           $cQuery->where('event_id', $event->id);

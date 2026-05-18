@@ -35,12 +35,23 @@ class JudgeController extends Controller
 
     public function index(Request $request)
     {
-        $events = Event::orderBy('date', 'desc')->get();
+        $events = Event::whereNull('parent_id')->orderBy('date', 'desc')->get();
         $selectedEventId = $request->get('event_id');
 
         $judgesQuery = User::where('role', 'judge');
         if ($selectedEventId) {
-            $judgesQuery->where('event_id', $selectedEventId);
+            // Include judges from this event and any of its child (Part 2) events
+            $childEventIds = Event::where('parent_id', $selectedEventId)->pluck('id')->toArray();
+            $allEventIds = array_merge([$selectedEventId], $childEventIds);
+            
+            $judgesQuery->where(function($q) use ($allEventIds, $selectedEventId) {
+                $q->whereIn('event_id', $allEventIds)
+                  ->orWhereHas('scores', function($scoreQuery) use ($selectedEventId) {
+                      $scoreQuery->whereHas('contestant', function($cQuery) use ($selectedEventId) {
+                          $cQuery->where('event_id', $selectedEventId);
+                      });
+                  });
+            });
         }
         $judges = $judgesQuery->orderBy('judge_number')->orderBy('name')->paginate(7);
 
@@ -54,8 +65,13 @@ class JudgeController extends Controller
 
     public function create(Request $request)
     {
-        $events = Event::orderBy('date', 'desc')->get();
+        $events = Event::whereNull('parent_id')->orderBy('date', 'desc')->get();
         $defaultEventId = $request->get('event_id');
+
+        if ($defaultEventId && !$events->contains('id', $defaultEventId)) {
+            $specificEvent = Event::find($defaultEventId);
+            if ($specificEvent) $events->push($specificEvent);
+        }
 
         // Build a map: event_id => [taken judge numbers]
         $takenNumbers = User::where('role', 'judge')
@@ -120,7 +136,12 @@ class JudgeController extends Controller
 
     public function edit(User $judge)
     {
-        $events = Event::orderBy('date', 'desc')->get();
+        $events = Event::whereNull('parent_id')->orderBy('date', 'desc')->get();
+        
+        if ($judge->event_id && !$events->contains('id', $judge->event_id)) {
+            $specificEvent = Event::find($judge->event_id);
+            if ($specificEvent) $events->push($specificEvent);
+        }
 
         // Build taken numbers map, excluding this judge's own number
         $takenNumbers = User::where('role', 'judge')

@@ -22,6 +22,36 @@ class AuthController extends Controller
         return view('auth.admin-login');
     }
 
+    // Show Superadmin Login Form (/superadmin page)
+    public function showSuperadminLoginForm()
+    {
+        return view('auth.superadmin-login');
+    }
+
+    // Verify Admin Email (AJAX — step 1 of admin login)
+    public function verifyAdminEmail(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)
+                    ->where('role', 'admin')
+                    ->first();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'No admin account found with this email.']);
+        }
+
+        if (!$user->is_active) {
+            return response()->json(['success' => false, 'message' => 'This account has been deactivated. Please contact the superadmin.']);
+        }
+
+        return response()->json([
+            'success'          => true,
+            'name'             => $user->name,
+            'password_changed' => (bool) $user->password_changed,
+        ]);
+    }
+
     // Verify Judge Code (AJAX step 1)
     public function verifyCode(Request $request)
     {
@@ -105,8 +135,58 @@ class AuthController extends Controller
         return redirect()->route('judge.dashboard');
     }
 
-    // Handle Admin Login
+    // Handle Admin Login (admin role ONLY — superadmins must use /superadmin)
     public function handleAdminLogin(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->email)
+                    ->where('role', 'admin')
+                    ->first();
+
+        if (!$user) {
+            return back()->withErrors(['email' => 'No admin account found with this email.'])->onlyInput('email');
+        }
+
+        if (!$user->is_active) {
+            return back()->withErrors(['email' => 'This account has been deactivated.'])->onlyInput('email');
+        }
+
+        // First-time login: set password inline (no separate setup page)
+        if (!$user->password_changed) {
+            $user->password         = Hash::make($request->password);
+            $user->password_changed = true;
+            $user->save();
+
+            Auth::login($user);
+            $request->session()->regenerate();
+
+            AuditLog::log('admin_password_set', "Admin set password on first login: {$user->name} ({$user->email})");
+            AuditLog::log('login', 'Admin logged in via /admin portal (first login)');
+
+            $request->session()->flash('login_success', true);
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Normal login: verify password
+        if (!Hash::check($request->password, $user->password)) {
+            return back()->withErrors(['password' => 'Incorrect password.'])->onlyInput('email');
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        AuditLog::log('login', 'Admin logged in via /admin portal');
+
+        $request->session()->flash('login_success', true);
+        return redirect()->route('admin.dashboard');
+    }
+
+    // Handle Superadmin Login (/superadmin portal)
+    public function handleSuperadminLogin(Request $request)
     {
         $credentials = $request->validate([
             'email' => 'required|email',
@@ -115,27 +195,26 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            
+
             $user = Auth::user();
-            
-            // Only allow admin or superadmin role
-            if (!in_array($user->role, ['admin', 'superadmin'])) {
+
+            // Only allow superadmin role
+            if ($user->role !== 'superadmin') {
                 Auth::logout();
+                if ($user->role === 'admin') {
+                    return back()->withErrors([
+                        'email' => 'Admin accounts must login at /admin.',
+                    ])->onlyInput('email');
+                }
                 return back()->withErrors([
-                    'email' => 'Access denied. Admin credentials required.',
+                    'email' => 'Access denied. Superadmin credentials required.',
                 ])->onlyInput('email');
             }
-            
-            AuditLog::log('login', 'Admin logged in');
-            
-            // If admin hasn't set their own password yet, redirect to setup
-            if ($user->role === 'admin' && !$user->password_changed) {
-                return redirect()->route('admin.setup');
-            }
-            
-            // Set flash message for login success
+
+            AuditLog::log('login', 'Superadmin logged in via /superadmin portal');
+
             $request->session()->flash('login_success', true);
-            
+
             return redirect()->route('admin.dashboard');
         }
 
@@ -148,17 +227,24 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $user = Auth::user();
-        
+        $role = $user?->role;
+
         if ($user) {
-            $action = $user->role === 'admin' ? 'Admin logged out' : 'Judge logged out';
-            AuditLog::log('logout', $action);
+            AuditLog::log('logout', ucfirst($role ?? 'User') . ' logged out');
         }
-        
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        // Redirect each role back to their own login portal
+        if ($role === 'superadmin') {
+            return redirect()->route('superadmin.login');
+        } elseif ($role === 'admin') {
+            return redirect()->route('admin.login');
+        }
+
+        return redirect()->route('login');
     }
 
     // Agreement Page (Judge only)

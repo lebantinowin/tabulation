@@ -11,21 +11,28 @@ use App\Http\Controllers\JudgeController;
 use App\Http\Controllers\AuditLogController;
 
 // Landing Page
-Route::get('/', function () {
+Route::get('/landing', function () {
     return view('landing');
 })->name('landing');
 
 // Public Contestant View
 Route::get('/contestants', [ContestantController::class, 'publicIndex'])->name('contestants.public');
 
-// Authentication - Judge Login
-Route::get('/login', [AuthController::class, 'showJudgeLoginForm'])->name('login');
+// Authentication - Judge Login (root URL is now the judge portal)
+Route::get('/', [AuthController::class, 'showJudgeLoginForm'])->name('login');
 Route::post('/login/verify-code', [AuthController::class, 'verifyCode'])->name('login.verifyCode');
 Route::post('/login', [AuthController::class, 'handleLogin']);
+// Alias so old /login links still work
+Route::get('/login', [AuthController::class, 'showJudgeLoginForm'])->name('login.page');
 
-// Admin Login (separate page)
+// Admin Login (admin role only)
 Route::get('/admin', [AuthController::class, 'showAdminLoginForm'])->name('admin.login');
-Route::post('/admin', [AuthController::class, 'handleAdminLogin']);
+Route::post('/admin', [AuthController::class, 'handleAdminLogin'])->name('admin.login.post');
+Route::post('/admin/verify-email', [AuthController::class, 'verifyAdminEmail'])->name('admin.verifyEmail');
+
+// Superadmin Login (superadmin role only)
+Route::get('/superadmin', [AuthController::class, 'showSuperadminLoginForm'])->name('superadmin.login');
+Route::post('/superadmin', [AuthController::class, 'handleSuperadminLogin'])->name('superadmin.login.post');
 
 // Logout (shared)
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

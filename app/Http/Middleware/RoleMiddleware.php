@@ -11,11 +11,17 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, string $role): Response
     {
         if (!$request->user()) {
-            return redirect('login');
+            // Redirect to the correct login portal based on required role
+            if ($role === 'superadmin') {
+                return redirect()->route('superadmin.login');
+            } elseif ($role === 'admin') {
+                return redirect()->route('admin.login');
+            }
+            return redirect()->route('login');
         }
 
         $userRole = $request->user()->role;
-        
+
         if ($role === 'admin' && $userRole === 'superadmin') {
             // Superadmins can do everything an admin can do
         } elseif ($userRole !== $role) {

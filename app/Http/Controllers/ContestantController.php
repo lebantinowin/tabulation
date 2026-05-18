@@ -21,7 +21,7 @@ class ContestantController extends Controller
         }
         
         $contestants = $contestants->orderBy('number')->get();
-        $events = Event::where('is_archived', false)->get();
+        $events = Event::whereNull('parent_id')->where('is_archived', false)->get();
         
         return view('contestants.public', compact('contestants', 'events'));
     }
@@ -29,13 +29,15 @@ class ContestantController extends Controller
     // Display a listing of the resource.
     public function index(Request $request)
     {
-        $events = Event::orderBy('date', 'desc')->get();
+        $events = Event::whereNull('parent_id')->orderBy('date', 'desc')->get();
         $selectedEventId = $request->get('event_id');
 
         $query = Contestant::with('event');
         
         if ($selectedEventId) {
-            $query->where('event_id', $selectedEventId);
+            $childEventIds = Event::where('parent_id', $selectedEventId)->pluck('id')->toArray();
+            $allEventIds = array_merge([$selectedEventId], $childEventIds);
+            $query->whereIn('event_id', $allEventIds);
         }
         
         $contestants = $query->orderBy('number')->paginate(7);
@@ -48,11 +50,16 @@ class ContestantController extends Controller
         return view('admin.contestants.index', compact('contestants', 'events', 'selectedEventId'));
     }
 
-    // Show the form for creating a new resource.
     public function create(Request $request)
     {
-        $events = Event::where('is_archived', false)->get();
+        $events = Event::whereNull('parent_id')->where('is_archived', false)->get();
         $defaultEventId = $request->get('event_id');
+        
+        // If a specific event was requested (like a Part 2 event), ensure it's in the dropdown
+        if ($defaultEventId && !$events->contains('id', $defaultEventId)) {
+            $specificEvent = Event::find($defaultEventId);
+            if ($specificEvent) $events->push($specificEvent);
+        }
         return view('admin.contestants.create', compact('events', 'defaultEventId'));
     }
 
@@ -91,7 +98,13 @@ class ContestantController extends Controller
     // Show the form for editing the specified resource.
     public function edit(Contestant $contestant)
     {
-        $events = Event::where('is_archived', false)->get();
+        $events = Event::whereNull('parent_id')->where('is_archived', false)->get();
+        
+        // Ensure the contestant's current event is in the dropdown, even if it's a Part 2 event
+        if (!$events->contains('id', $contestant->event_id)) {
+            $specificEvent = Event::find($contestant->event_id);
+            if ($specificEvent) $events->push($specificEvent);
+        }
         return view('admin.contestants.edit', compact('contestant', 'events'));
     }
 

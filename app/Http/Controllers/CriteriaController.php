@@ -19,8 +19,13 @@ class CriteriaController extends Controller
 
     public function create()
     {
-        $events = Event::whereIn('status', ['upcoming', 'ongoing'])->get();
+        $events = Event::whereNull('parent_id')->whereIn('status', ['upcoming', 'ongoing'])->get();
         $selectedEventId = request()->get('event_id');
+        
+        if ($selectedEventId && !$events->contains('id', $selectedEventId)) {
+            $specificEvent = Event::find($selectedEventId);
+            if ($specificEvent) $events->push($specificEvent);
+        }
         
         $eventWeights = [];
         foreach ($events as $event) {
@@ -65,7 +70,13 @@ class CriteriaController extends Controller
     // Show the form for editing the specified resource.
     public function edit(Criteria $criteria)
     {
-        $events = Event::whereIn('status', ['upcoming', 'ongoing'])->get();
+        $events = Event::whereNull('parent_id')->whereIn('status', ['upcoming', 'ongoing'])->get();
+        
+        if (!$events->contains('id', $criteria->event_id)) {
+            $specificEvent = Event::find($criteria->event_id);
+            if ($specificEvent) $events->push($specificEvent);
+        }
+        
         return view('admin.criteria.edit', compact('criteria', 'events'));
     }
 
