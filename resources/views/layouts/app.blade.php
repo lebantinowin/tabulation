@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Tabulation System')</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('ts_logo.svg') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -815,9 +816,9 @@
     @auth
     <!-- Sidebar Navigation -->
     <nav class="sidebar" id="sidebar">
-        <div class="brand">
+        <div class="brand" style="gap: 10px;">
+            <img src="{{ asset('ts_logo.svg') }}" alt="Logo" style="height: 28px; width: 28px; object-fit: contain; border-radius: 4px;">
             <span class="brand-text-full">Tabulation System</span>
-            <span class="brand-text-short">TS</span>
         </div>
         
         <div class="nav-links">

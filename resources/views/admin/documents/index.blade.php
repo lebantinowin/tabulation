@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="page-header">
-    <h1><i class="fas fa-folder-open text-muted"></i> Documents</h1>
+    <h1>Documents</h1>
 </div>
 
 <div style="width: 100%; padding-bottom: 120px;">

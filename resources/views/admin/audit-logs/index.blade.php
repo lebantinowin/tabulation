@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="page-header">
-    <h1><i class="fas fa-clipboard-list"></i> Audit Logs</h1>
+    <h1>Audit Logs</h1>
 </div>
 
 @if(session('error'))

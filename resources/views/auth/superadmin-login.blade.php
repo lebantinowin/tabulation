@@ -155,6 +155,9 @@
 
 <div class="login-page">
     <div class="login-card">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <img src="{{ asset('ts_logo.svg') }}" alt="Logo" style="height: 60px; width: 60px; object-fit: contain; border-radius: 8px;">
+        </div>
         <div class="login-header">
             <h2><i class="fas fa-crown"></i> Superadmin Login</h2>
             <p>Restricted to authorized superadmin accounts only</p>

@@ -131,6 +131,9 @@
 
 <div class="login-page">
     <div class="login-card">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <img src="{{ asset('ts_logo.svg') }}" alt="Logo" style="height: 60px; width: 60px; object-fit: contain; border-radius: 8px;">
+        </div>
         
         <div id="error-alert" class="alert alert-danger" style="display: none;"></div>
 

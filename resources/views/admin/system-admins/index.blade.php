@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="page-header">
-    <h1><i class="fas fa-user-shield text-muted"></i> Admin Accounts</h1>
+    <h1>Admin Accounts</h1>
     <a href="{{ route('system-admins.create') }}" class="btn btn-primary">
         <i class="fas fa-plus"></i> Add Admin
     </a>
